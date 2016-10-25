@@ -22,7 +22,7 @@ Example:
 
 @group REST Elements
 @element rest-api-doc
-@demo demo/index.html
+@demo demo/doc.html
 @hero hero.svg
 -->
 <dom-module id="rest-api-doc">
@@ -49,17 +49,6 @@ Example:
       #description {
         padding: 8px;
       }
-      paper-input {
-        display: inline-block;
-      }
-      .keyValueHeader {
-        background-color: rgb(220, 220, 220);
-        padding: 8px;
-        margin: 8px 0;
-      }
-      .keyValueContainer {
-        margin-left: 16px;
-      }
       paper-button {
         position: absolute;
         top: 8px;
@@ -73,44 +62,11 @@ Example:
         padding: 8px;
       }
     </style>
-    <div id="request">
+    <!--<div id="request">
       <span id="method">[[method]]</span>
       <span id="url">[[url]]</span>
     </div>
-    <div id="description"><content></content></div>
-    <div id="params">
-      <template is="dom-if" if="[[params]]">
-        <div class="keyValueHeader">Params</div>
-        <div class="keyValueContainer">
-          <template id="paramRepeat" is="dom-repeat" items="[[params]]">
-            <paper-input label="[[item.key]]"></paper-input>
-          </template>
-        </template>
-      </div>
-    </div>
-    <div id="headers">
-      <template is="dom-if" if="[[headers]]">
-        <div class="keyValueHeader">Headers</div>
-        <div class="keyValueContainer">
-          <template id="headerRepeat" is="dom-repeat" items="[[headers]]">
-            <paper-input label="[[item.key]]"></paper-input>
-          </template>
-        </template>
-      </div>
-    </div>
-    <div id="body">
-      <template is="dom-if" if="[[body]]">
-        <div class="keyValueHeader">Body</div>
-        <div class="keyValueContainer">
-          <template id="bodyRepeat" is="dom-repeat" items="[[body]]">
-            <paper-input label="[[item.key]]"></paper-input>
-          </template>
-        </template>
-      </div>
-    </div>
-    <paper-button raised on-tap="sendRequest">Send Request</paper-button>
-    <div class="keyValueHeader">Response</div>
-    <x-json id="jsonResponse"></x-json>
+    <div id="description"><content></content></div>-->
   </template>
 </dom-module>
 
@@ -121,6 +77,11 @@ Example:
     is: 'rest-api-doc',
 
     properties: {
+
+      /**
+       * The `title` of the request
+       */
+      title: String,
 
       /**
        * The `url` to send the request to
@@ -153,6 +114,8 @@ Example:
        */
       body: Array,
 
+      explanation: String,
+
       /**
        * The `response` of the HTTP Request after it has been performed
        */
@@ -160,6 +123,45 @@ Example:
         type: String,
         readOnly: true
       }
+    },
+
+    ready: function () {
+      this.set('params', []);
+      this.set('headers', []);
+      this.set('body', null);
+      this.set('explanation', '');
+
+      this._observer = Polymer.dom(this).observeNodes(function (info) {
+        this._setRequestInfos();
+      });
+    },
+
+    _setRequestInfos: function () {
+      var params = this.queryAllEffectiveChildren('rest-api-param');
+      var headers = this.queryAllEffectiveChildren('rest-api-header');
+      var body = this.queryAllEffectiveChildren('rest-api-body');
+      var kvBody = this.queryAllEffectiveChildren('rest-api-kv-body');
+      var explanation = this.queryAllEffectiveChildren('rest-api-explanation');
+      // Check for duplicate body declaration
+      if (body.length > 0 && kvBody > 0) {
+        console.warn('Only use either <rest-api-body> or <rest-api-kv-body>, ' +
+            'but not both for one api. Now using: <rest-api-body>');
+        this.set('body', body[0]);
+      } else if (body.length > 0) {
+        this.set('body', body[0]);
+      } else if (kvBody.length > 0) {
+        this.set('body', kvBody);
+      } else {
+        this.set('body', null);
+      }
+
+      this.set('params', params);
+      this.set('headers', headers);
+      this.set('explanation', explanation[0].innerHTML);
+      console.log(this.params);
+      console.log(this.headers);
+      console.log(this.explanation);
+      console.log(this.body);
     },
 
     sendRequest: function() {

@@ -1,0 +1,132 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="rest-api-live-demo">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      paper-button {
+        background: var(--accent-color);
+        width: 100%;
+      }
+      paper-input {
+        display: inline-block;
+        width: calc(50% - 2px);
+        --paper-input-container-color: #fff;
+        --paper-input-container-input-color: #fff;
+        --paper-input-container-focus-color: var(--accent-color);
+      }
+      .title {
+        margin: 8px 0;
+      }
+      .container {
+        margin-left: 8px;
+      }
+    </style>
+    <div id="params">
+      <template is="dom-if" if="[[_isSet(endpoint.params)]]">
+        <div class="title">Params</div>
+        <div class="container">
+          <template id="paramRepeat" is="dom-repeat" items="[[endpoint.params]]">
+            <paper-input label="[[_getKey(item)]]"></paper-input>
+          </template>
+        </div>
+      </template>
+    </div>
+    <div id="headers">
+      <template is="dom-if" if="[[_isSet(endpoint.headers)]]">
+        <div class="title">Headers</div>
+        <div class="container">
+          <template id="headerRepeat" is="dom-repeat" items="[[endpoint.headers]]">
+            <paper-input label="[[_getKey(item)]]"></paper-input>
+          </template>
+        </div>
+      </template>
+    </div>
+    <div id="body">
+      <template is="dom-if" if="[[_isSet(endpoint.body)]]">
+        <div class="title">Body</div>
+        <div class="container">
+          <template id="bodyRepeat" is="dom-repeat" items="[[endpoint.body]]">
+            <paper-input label="[[_getKey(item)]]"></paper-input>
+          </template>
+        </div>
+      </template>
+    </div>
+    <paper-button raised on-tap="sendRequest">Send Request</paper-button>
+  </template>
+  <script>
+    (function () {
+      'use strict';
+
+      Polymer({
+        is: 'rest-api-live-demo',
+
+        properties: {
+          endpoint: Object,
+          baseUrl: String
+        },
+
+        attached: function () {
+        },
+
+        _getKey: function(item) {
+          return item.getAttribute('key');
+        },
+
+        _isSet: function (obj) {
+          if (obj) {
+            if (obj instanceof Array)
+              return obj.length > 0;
+          }
+          return false;
+        },
+
+        sendRequest: function () {
+          var url = this.baseUrl + this.endpoint.url + '?';
+          var method = this.endpoint.method.toUpperCase();
+          var paramInputs = this.$.params.querySelectorAll('paper-input');
+          var headerInputs = this.$.headers.querySelectorAll('paper-input');
+          var bodyInputs = this.$.body.querySelectorAll('paper-input');
+
+          for (var i = 0; i < paramInputs.length; i++) {
+            var value = paramInputs[i].value;
+            var key = paramInputs[i].label;
+            if (value) {
+              url += key + '=' + value + '&';
+            }
+          }
+
+          var headers = new Headers();
+          for (var i = 0; i < headerInputs.length; i++) {
+            var value = headerInputs[i].value;
+            var key = headerInputs[i].label;
+            if (value) {
+              headers.append(key, value);
+            }
+          }
+
+          var body = new URLSearchParams();
+          for (var i = 0; i < bodyInputs.length; i++) {
+            var value = bodyInputs[i].value;
+            var key = bodyInputs[i].label;
+            if (value) {
+              body.append(key, value);
+            }
+          }
+
+          var init = {
+            method: method,
+            headers: headers,
+            body: method !== 'GET' ? body : undefined
+          };
+
+          fetch(url, init).then(function (response) {
+            this.fire('http-result', {response: response});
+          }.bind(this));
+        }
+      });
+    })();
+  </script>
+</dom-module>
