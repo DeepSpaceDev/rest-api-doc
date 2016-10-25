@@ -1,0 +1,265 @@
+<link rel="import" href="../polymer/polymer.html" xmlns="http://www.w3.org/1999/html">
+
+<link rel="import" href="../paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="../paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-item/paper-item.html">
+
+<link rel="import" href="../iron-doc-viewer/iron-doc-property.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../iron-selector/iron-selector.html">
+
+<link rel="import" href="rest-api-live-demo.html">
+<link rel="import" href="rest-api-live-response.html">
+<!--
+An element providing a solution to no problem in particular.
+
+Example:
+
+    <rest-api-page></rest-api-page>
+
+@group REST Elements
+@element rest-api-page
+@demo demo/index.html
+@hero hero.svg
+-->
+<dom-module id="rest-api-page">
+  <template>
+    <style>
+      :root {
+        --primary-color: #9C27B0;
+        --accent-color: #448AFF;
+        font-family: 'Roboto', 'Noto', sans-serif;
+      }
+      :host {
+        display: block;
+        font-family: 'Roboto', 'Noto', sans-serif;
+      }
+      h4 {
+        color: #4b4b4b;
+      }
+      iron-doc-property {
+        background: #eee;
+      }
+      .request {
+        padding: 8px 0;
+        font-size: 18px;
+      }
+      .divider {
+        color: #4a4a4a;
+      }
+      .method {
+        text-transform: uppercase;
+        color: var(--accent-color);
+      }
+      .base-url {
+        color: #838383;
+      }
+      .endpoint {
+        font-style: italic;
+        color: #4a4a4a;
+      }
+      .drawer-content {
+        background: #f0f0f0;
+        height: 100%;
+      }
+      .content {
+        display: flex;
+        position: absolute;
+        width: calc(100% + 32px);
+        top: 0;
+        left: -16px;
+        padding: 0 16px;
+        height: 100%;
+      }
+      .endpoint-title {
+        align-self: center;
+      }
+      .doc {
+        flex: 3;
+        display: flex;
+        padding: 16px;
+        flex-direction: column;
+      }
+      .example {
+        flex: 2;
+        display: flex;
+        background: #616161;
+        color: #fff;
+        padding: 16px;
+        flex-direction: column;
+      }
+      paper-toolbar .doc {
+        flex-direction: row;
+      }
+      paper-toolbar .example {
+        flex-direction: row;
+        background: #414141;
+      }
+      .body .doc {
+        overflow-y: scroll;
+      }
+      .body .example {
+        min-height: 500px;
+        overflow-y: scroll;
+      }
+      .body .example > * {
+        width: calc(100% - 32px);
+      }
+      @media (max-width: 1000px) {
+        paper-header-panel[main] paper-toolbar {
+          height: 118px;
+        }
+        .content {
+          flex-direction: column;
+          height: 118px;
+        }
+        .body .doc {
+          flex: none;
+          overflow-y: initial;
+        }
+        .body .example {
+          flex: none;
+          overflow-y: initial;
+        }
+      }
+    </style>
+    <paper-drawer-panel drawer-width="220px">
+      <paper-header-panel drawer>
+        <paper-toolbar>
+          <div>Application</div>
+        </paper-toolbar>
+        <div class="drawer-content">
+          <iron-selector selected="0" on-iron-select="endpointChanged">
+            <template id="endpointRepeat" is="dom-repeat" items="[[_columns]]" as="column">
+              <paper-item>[[column.title]]</paper-item>
+            </template>
+          </iron-selector>
+        </div>
+      </paper-header-panel>
+      <paper-header-panel main>
+        <paper-toolbar>
+          <div class="content">
+            <div class="doc">
+              <paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
+              <div class="endpoint-title">[[_endpoint.title]]</div>
+            </div>
+            <div class="example"></div>
+          </div>
+        </paper-toolbar>
+        <div class="body content">
+          <div class="doc">
+            <div class="request">
+              <span class="method">[[_endpoint.method]]</span>
+              <span class="divider"> - </span>
+              <span class="base-url">[[baseUrl]]</span>
+              <span class="endpoint">[[_endpoint.url]]</span>
+            </div>
+            <div class="explanation">[[_endpoint.explanation]]</div>
+            <template is="dom-if" if="[[_isSet(_endpoint.params)]]">
+              <h4>Params:</h4>
+              <template is="dom-repeat" items="[[_endpoint.params]]" as="param">
+                <iron-doc-property descriptor="[[_convertToDescriptor(param)]]"></iron-doc-property>
+              </template>
+            </template>
+            <template is="dom-if" if="[[_isSet(_endpoint.headers)]]">
+              <h4>Headers:</h4>
+              <template is="dom-repeat" items="[[_endpoint.headers]]" as="header">
+                <iron-doc-property descriptor="[[_convertToDescriptor(header)]]"></iron-doc-property>
+              </template>
+            </template>
+            <template is="dom-if" if="[[_isSet(_endpoint.body)]]">
+              <h4>Body:</h4>
+              <template is="dom-if" if="[[_isArray(_endpoint.body)]]">
+                <template is="dom-repeat" items="[[_endpoint.body]]" as="kvPain">
+                  <iron-doc-property descriptor="[[_convertToDescriptor(kvPair)]]"></iron-doc-property>
+                </template>
+              </template>
+              <template is="dom-if" if="[[!_isArray(_endpoint.body)]]">
+                <!-- TODO: display value, e.g. as plain text -->
+              </template>
+            </template>
+          </div>
+          <div class="example">
+            <rest-api-live-demo base-url="[[baseUrl]]" endpoint="[[_endpoint]]"
+                                on-http-result="_displayResult"></rest-api-live-demo>
+            <rest-api-live-response id="restApiLiveResult"></rest-api-live-response>
+          </div>
+        </div>
+      </paper-header-panel>
+    </paper-drawer-panel>
+  </template>
+  <script>
+    Polymer({
+      is: 'rest-api-page',
+
+      properties: {
+        liveDemo: {
+          type: Boolean,
+          value: false
+        },
+        codeSnippets: {
+          type: Boolean,
+          value: false
+        },
+        baseUrl: {
+          type: String,
+          value: ''
+        },
+        _columns: {
+          type: Array
+        }
+      },
+
+      ready: function () {
+        this.set('_columns', []);
+        this._observer = Polymer.dom(this).observeNodes(function (info) {
+          this._setColumns();
+        });
+      },
+
+      _setColumns: function () {
+        var columns = this.queryAllEffectiveChildren('rest-api-doc');
+        this.set('_columns', columns);
+      },
+
+      endpointChanged: function (e) {
+        var element = e.detail.item;
+        var _endpoint = this.$.endpointRepeat.itemForElement(element);
+        this.set('_endpoint', _endpoint);
+      },
+
+      _convertToDescriptor: function (param) {
+        var key = param.getAttribute('key');
+        var type = param.getAttribute('type');
+        var values = param.getAttribute('values');
+        return {
+          default: values ? values.split(',') : undefined,
+          desc: param.innerText,
+          name: key,
+          published: true,
+          type: type
+        };
+      },
+
+      _isSet: function (obj) {
+        if (obj) {
+          if (obj instanceof Array)
+            return obj.length > 0;
+        }
+        return false;
+      },
+
+      _isArray: function (obj) {
+        return obj && obj instanceof Array;
+      },
+
+      _displayResult: function (e) {
+        var response = e.detail.response;
+        this.$.restApiLiveResult.setReponse(response)
+        console.log(response);
+      }
+    });
+  </script>
+</dom-module>

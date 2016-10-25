@@ -1,0 +1,48 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="rest-api-live-response">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      .title {
+        margin: 8px 0;
+      }
+      x-json {
+        background: #494949;
+        padding: 8px;
+        border-radius: 2px;
+      }
+    </style>
+
+    <div class="title">Response</div>
+    <x-json id="jsonResponse"></x-json>
+  </template>
+  <script>
+    (function () {
+      'use strict';
+
+      Polymer({
+        is: 'rest-api-live-response',
+
+        properties: {},
+
+        ready: function () {
+          this.$.jsonResponse.data = "Send a request first";
+        },
+
+        setReponse: function (response) {
+          var headers = response.headers;
+          var contentType = headers.get('Content-Type');
+          if (contentType === 'application/json') {
+            response.json().then(function (json) {
+              this.$.jsonResponse.data = json;
+            }.bind(this));
+          }
+        }
+
+      });
+    })();
+  </script>
+</dom-module>
