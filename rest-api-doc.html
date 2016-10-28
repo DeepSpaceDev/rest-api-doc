@@ -62,6 +62,7 @@ Example:
         padding: 8px;
       }
     </style>
+    <content></content>
     <!--<div id="request">
       <span id="method">[[method]]</span>
       <span id="url">[[url]]</span>
@@ -75,6 +76,10 @@ Example:
   Polymer({
 
     is: 'rest-api-doc',
+
+    hostAttributes: {
+      hidden: true
+    },
 
     properties: {
 
