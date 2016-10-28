@@ -176,7 +176,7 @@
               `${body ? `,\n\tbody: ${body}` : ''}` +
               '\n};';
           requestString += `\n${init}\n\n`;
-          requestString += `var request = new Request(\n\t'${url}', init);\n`;
+          requestString += `var request = fetch(\n\t'${url}', init);\n`;
           requestString += `request.then(result => {\n\tconsole.log(result);\n});`;
 
           switch (method) {
