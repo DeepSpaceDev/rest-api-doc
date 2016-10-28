@@ -23,8 +23,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <rest-api-page base-url="http://api.xtrm-sports.com">
   <rest-api-doc title="Get Location" method="GET" url="/get">
-    <rest-api-param key="id" type="Number" values="1, 12, 30">The ID for the location to fetch.</rest-api-param>
-    <rest-api-param key="language" type="String" optional values="de, en">The requested language for the result.</rest-api-param>
+    <rest-api-param key="id" type="Number" values='[1, 12, 30]'>The ID for the location to fetch.</rest-api-param>
+    <rest-api-param key="language" type="String" values='["de", "en"]' optional>The requested language for the result.</rest-api-param>
+    <rest-api-header key="content-type" type="String" values='["application/json"]' optional>The requested language for the result.</rest-api-header>
     <rest-api-explanation>Get every location by ID.</rest-api-explanation>
   </rest-api-doc>
   <rest-api-doc title="Search"></rest-api-doc>
