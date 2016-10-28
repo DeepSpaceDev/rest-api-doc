@@ -11,6 +11,7 @@
 <link rel="import" href="../iron-selector/iron-selector.html">
 
 <link rel="import" href="rest-api-language-selector.html">
+<link rel="import" href="rest-api-code-snippet.html">
 <link rel="import" href="rest-api-live-demo.html">
 <link rel="import" href="rest-api-live-response.html">
 
@@ -85,13 +86,13 @@ Example:
         align-self: center;
       }
       .doc {
-        flex: 3;
+        flex: 4;
         display: flex;
         padding: 16px;
         flex-direction: column;
       }
       .example {
-        flex: 2;
+        flex: 3;
         display: flex;
         background: #616161;
         color: #fff;
@@ -194,6 +195,8 @@ Example:
             </template>
           </div>
           <div class="example">
+            <rest-api-code-snippet base-url="[[baseUrl]]" endpoint="[[_endpoint]]" language="[[language]]">
+            </rest-api-code-snippet>
             <rest-api-live-demo base-url="[[baseUrl]]" endpoint="[[_endpoint]]"
                                 on-http-result="_displayResult"></rest-api-live-demo>
             <rest-api-live-response id="restApiLiveResult"></rest-api-live-response>
