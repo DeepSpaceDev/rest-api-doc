@@ -10,8 +10,14 @@
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../iron-selector/iron-selector.html">
 
+<link rel="import" href="rest-api-language-selector.html">
+<link rel="import" href="rest-api-code-snippet.html">
 <link rel="import" href="rest-api-live-demo.html">
 <link rel="import" href="rest-api-live-response.html">
+
+<link rel="import" href="rest-api-param.html">
+<link rel="import" href="rest-api-header.html">
+
 <!--
 An element providing a solution to no problem in particular.
 
@@ -64,26 +70,29 @@ Example:
         background: #f0f0f0;
         height: 100%;
       }
-      .content {
-        display: flex;
+      .toolbar-wrapper {
         position: absolute;
-        width: calc(100% + 32px);
+        width: 100%;
         top: 0;
         left: -16px;
         padding: 0 16px;
+        height: 100%;
+      }
+      .content {
+        display: flex;
         height: 100%;
       }
       .endpoint-title {
         align-self: center;
       }
       .doc {
-        flex: 3;
+        flex: 4;
         display: flex;
         padding: 16px;
         flex-direction: column;
       }
       .example {
-        flex: 2;
+        flex: 3;
         display: flex;
         background: #616161;
         color: #fff;
@@ -98,11 +107,11 @@ Example:
         background: #414141;
       }
       .body .doc {
-        overflow-y: scroll;
+        overflow-y: auto;
       }
       .body .example {
         min-height: 500px;
-        overflow-y: scroll;
+        overflow-y: auto;
       }
       .body .example > * {
         width: calc(100% - 32px);
@@ -140,12 +149,16 @@ Example:
       </paper-header-panel>
       <paper-header-panel main>
         <paper-toolbar>
-          <div class="content">
-            <div class="doc">
-              <paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
-              <div class="endpoint-title">[[_endpoint.title]]</div>
+          <div class="toolbar-wrapper">
+            <div class="content">
+              <div class="doc">
+                <paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
+                <div class="endpoint-title">[[_endpoint.title]]</div>
+              </div>
+              <div class="example">
+                <rest-api-language-selector language="{{language}}"></rest-api-language-selector>
+              </div>
             </div>
-            <div class="example"></div>
           </div>
         </paper-toolbar>
         <div class="body content">
@@ -182,6 +195,8 @@ Example:
             </template>
           </div>
           <div class="example">
+            <rest-api-code-snippet base-url="[[baseUrl]]" endpoint="[[_endpoint]]" language="[[language]]">
+            </rest-api-code-snippet>
             <rest-api-live-demo base-url="[[baseUrl]]" endpoint="[[_endpoint]]"
                                 on-http-result="_displayResult"></rest-api-live-demo>
             <rest-api-live-response id="restApiLiveResult"></rest-api-live-response>
@@ -189,6 +204,7 @@ Example:
         </div>
       </paper-header-panel>
     </paper-drawer-panel>
+    <content></content>
   </template>
   <script>
     Polymer({
@@ -209,6 +225,10 @@ Example:
         },
         _columns: {
           type: Array
+        },
+        language: {
+          type: String,
+          value: 'python'
         }
       },
 
