@@ -21,15 +21,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <p>An example of <code>&lt;rest-api-page&gt;</code>:</p>
 
-<rest-api-page base-url="http://api.xtrm-sports.com">
-  <rest-api-doc title="Get Location" method="GET" url="/get">
-    <rest-api-param key="id" type="Number" values='[1, 12, 30]'>The ID for the location to fetch.</rest-api-param>
-    <rest-api-param key="language" type="String" values='["de", "en"]' optional>The requested language for the result.</rest-api-param>
-    <rest-api-explanation>Get every location by ID.</rest-api-explanation>
+<rest-api-page base-url="https://httpbin.org">
+  <rest-api-doc title="Get Request" method="GET" url="/get">
+    <rest-api-param key="someparam" type="Number" values='[1, 12, 30]'>Some numerical param.</rest-api-param>
+    <rest-api-param key="otherparam" type="String" values='["a string", "another string"]' optional>Some string param</rest-api-param>
+    <rest-api-explanation>Send a get request to httpbin.org to see what's in the sent request.</rest-api-explanation>
   </rest-api-doc>
-  <rest-api-doc title="Search"></rest-api-doc>
-  <rest-api-doc title="List Locations"></rest-api-doc>
-  <rest-api-doc title="Add Location"></rest-api-doc>
+  <rest-api-doc title="Post Request" method="POST" url="/post">
+    <rest-api-kv-body key="someKey" type="Boolean" values="[true, false]">A boolean key</rest-api-kv-body>
+    <rest-api-kv-body key="anotherKey" type="String" values='["string", "some other string]"'>A string key</rest-api-kv-body>
+    <rest-api-header key="content-type" values='["application/json"]'></rest-api-header>
+    <rest-api-explanation>Send a post request to httpbin.org to see what's in the sent request.</rest-api-explanation>
+  </rest-api-doc>
 </rest-api-page>
 
 <script>
