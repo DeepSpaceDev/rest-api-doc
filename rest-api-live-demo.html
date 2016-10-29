@@ -29,7 +29,7 @@
         <div class="title">Params</div>
         <div class="container">
           <template id="paramRepeat" is="dom-repeat" items="[[endpoint.params]]">
-            <paper-input label="[[_getKey(item)]]"></paper-input>
+            <paper-input label="[[item.key]]" value="[[_getFirstValue(item.values)]]"></paper-input>
           </template>
         </div>
       </template>
@@ -39,7 +39,7 @@
         <div class="title">Headers</div>
         <div class="container">
           <template id="headerRepeat" is="dom-repeat" items="[[endpoint.headers]]">
-            <paper-input label="[[_getKey(item)]]"></paper-input>
+            <paper-input label="[[item.key]]" value="[[_getFirstValue(item.values)]]"></paper-input>
           </template>
         </div>
       </template>
@@ -49,7 +49,7 @@
         <div class="title">Body</div>
         <div class="container">
           <template id="bodyRepeat" is="dom-repeat" items="[[endpoint.body]]">
-            <paper-input label="[[_getKey(item)]]"></paper-input>
+            <paper-input label="[[item.key]]" value="[[_getFirstValue(item.values)]]"></paper-input>
           </template>
         </div>
       </template>
@@ -68,11 +68,18 @@
           baseUrl: String
         },
 
-        attached: function () {
+        observers: ['_endpointChanged(endpoint.*, baseUrl)'],
+
+        _endpointChanged: function () {
+          requestAnimationFrame(_ => {
+            this.sendRequest();
+          });
         },
 
-        _getKey: function(item) {
-          return item.getAttribute('key');
+        _getFirstValue: function (values) {
+          if (values && values instanceof Array && values.length > 0) {
+            return values[0];
+          }
         },
 
         _isSet: function (obj) {
@@ -119,7 +126,8 @@
           var init = {
             method: method,
             headers: headers,
-            body: method !== 'GET' ? body : undefined
+            body: method !== 'GET' && method !== 'HEAD' && method !== 'TRACE' &&
+                  method !== 'OPTIONS' && method !== 'CONNECT' ? body : undefined
           };
 
           fetch(url, init).then(function (response) {
