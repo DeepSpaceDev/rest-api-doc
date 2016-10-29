@@ -88,8 +88,11 @@ Example:
       .doc {
         flex: 4;
         display: flex;
-        padding: 16px;
+        padding: 16px 0;
         flex-direction: column;
+      }
+      .doc > :not(iron-doc-property) {
+        padding: 0 16px;
       }
       .example {
         flex: 3;
