@@ -8,10 +8,6 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 <link rel="import" href="../polymer/polymer.html">
-<link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic' rel='stylesheet' type='text/css'>
-<link rel="import" href="../paper-input/paper-input.html">
-<link rel="import" href="../paper-button/paper-button.html">
-<link rel="import" href="x-json.html">
 
 <!--
 An element providing a solution to no problem in particular.
@@ -35,20 +31,6 @@ Example:
         box-sizing: border-box;
         font-family: 'Roboto', sans-serif;
       }
-      #request {
-        background-color: rgb(220, 220, 220);
-        padding: 8px;
-      }
-      #method {
-        font-weight: bold;
-        text-transform: uppercase;
-      }
-      #url {
-        font-style: oblique;
-      }
-      #description {
-        padding: 8px;
-      }
       paper-button {
         position: absolute;
         top: 8px;
@@ -56,18 +38,8 @@ Example:
         background: #F44336;
         color: #fff;
       }
-      #jsonResponse {
-        display: none;
-        background: rbg(220, 220, 220);
-        padding: 8px;
-      }
     </style>
     <content></content>
-    <!--<div id="request">
-      <span id="method">[[method]]</span>
-      <span id="url">[[url]]</span>
-    </div>
-    <div id="description"><content></content></div>-->
   </template>
 </dom-module>
 
@@ -137,11 +109,11 @@ Example:
       this.set('explanation', '');
 
       this._observer = Polymer.dom(this).observeNodes(function (info) {
-        this._setRequestInfos();
+        this._setRequestInfo();
       });
     },
 
-    _setRequestInfos: function () {
+    _setRequestInfo: function () {
       var params = this.queryAllEffectiveChildren('rest-api-param');
       var headers = this.queryAllEffectiveChildren('rest-api-header');
       var body = this.queryAllEffectiveChildren('rest-api-body');
@@ -162,71 +134,8 @@ Example:
 
       this.set('params', params);
       this.set('headers', headers);
-      this.set('explanation', explanation[0].innerHTML);
-      console.log(this.params);
-      console.log(this.headers);
-      console.log(this.explanation);
-      console.log(this.body);
-    },
-
-    sendRequest: function() {
-      var url = this.url + '?';
-      var method = this.method.toUpperCase();
-      var paramInputs = this.$.params.querySelectorAll('paper-input');
-      var headerInputs = this.$.headers.querySelectorAll('paper-input');
-      var bodyInputs = this.$.body.querySelectorAll('paper-input');
-
-      for (var i = 0; i < paramInputs.length; i++) {
-        var value = paramInputs[i].value;
-        var key = this.$$('#paramRepeat').itemForElement(paramInputs[i]).key;
-        if (value) {
-          url += key + '=' + value + '&';
-        }
-      }
-
-      var headers = new Headers();
-      for (var i = 0; i < headerInputs.length; i++) {
-        var value = headerInputs[i].value;
-        var key = this.$$('#headerRepeat').itemForElement(headerInputs[i]).key;
-        if (value) {
-          headers.append(key, value);
-        }
-      }
-
-      var body = new URLSearchParams();
-      for (var i = 0; i < bodyInputs.length; i++) {
-        var value = bodyInputs[i].value;
-        var key = this.$$('#bodyRepeat').itemForElement(bodyInputs[i]).key;
-        console.log(key);
-        if (value) {
-          body.append(key, value);
-        }
-      }
-
-      var init = {
-        method: method,
-        headers: headers,
-        body: body
-      };
-
-      fetch(url, init).then(response => {
-        console.log(response);
-        var headers = response.headers;
-        var contentType = headers.get('Content-Type');
-        if (contentType === 'application/json') {
-          response.json().then(json => {
-            //TODO pretty print json
-            console.log(json);
-            this.$.jsonResponse.data = json;
-            this.$.jsonResponse.style.display = 'block';
-          });
-        } else {
-          response.text().then(text => {
-            //TODO print text
-            this.$.jsonResponse.style.display = 'none';
-          });
-        }
-      });
+      if (explanation.length > 0)
+        this.set('explanation', explanation[0].innerHTML);
     }
   });
 

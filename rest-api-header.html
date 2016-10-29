@@ -22,7 +22,11 @@
 
         properties: {
           key: String,
-          type: String,
+          type: {
+            type: String,
+            value: 'String',
+            readOnly: true
+          },
           values: Array,
           optional: Boolean,
           explanation: String,

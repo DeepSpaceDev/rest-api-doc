@@ -1,4 +1,5 @@
-<link rel="import" href="../polymer/polymer.html" xmlns="http://www.w3.org/1999/html">
+<link rel="import" href="../polymer/polymer.html">
+<link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic' rel='stylesheet' type='text/css'>
 
 <link rel="import" href="../paper-drawer-panel/paper-drawer-panel.html">
 <link rel="import" href="../paper-header-panel/paper-header-panel.html">
@@ -15,6 +16,7 @@
 <link rel="import" href="rest-api-live-demo.html">
 <link rel="import" href="rest-api-live-response.html">
 
+<link rel="import" href="rest-api-section.html">
 <link rel="import" href="rest-api-param.html">
 <link rel="import" href="rest-api-header.html">
 
@@ -44,6 +46,15 @@ Example:
       }
       h4 {
         color: #4b4b4b;
+      }
+      paper-item {
+        cursor: pointer;
+      }
+      paper-item[disabled] {
+        color: #aaaaaa;
+        font-weight: bold;
+        font-size: 22px;
+        padding-top: 16px;
       }
       iron-doc-property {
         background: #eee;
@@ -143,9 +154,18 @@ Example:
           <div>Application</div>
         </paper-toolbar>
         <div class="drawer-content">
-          <iron-selector selected="0" on-iron-select="endpointChanged">
-            <template id="endpointRepeat" is="dom-repeat" items="[[_columns]]" as="column">
-              <paper-item>[[column.title]]</paper-item>
+          <iron-selector selected="0" on-iron-select="endpointChanged"
+                         fallback-selection="0" selectable=".selectable-endpoint">
+            <template id="endpointRepeat" is="dom-repeat" items="[[_columns]]">
+              <template is="dom-if" if="[[_isSection(item)]]">
+                <paper-item disabled>[[item.heading]]</paper-item>
+                <template is="dom-repeat" items="[[_getDocItems(item)]]" as="endpoint">
+                  <paper-item class="selectable-endpoint">[[endpoint.title]]</paper-item>
+                </template>
+              </template>
+              <template is="dom-if" if="[[!_isSection(item)]]">
+                <paper-item class="selectable-endpoint">[[item.title]]</paper-item>
+              </template>
             </template>
           </iron-selector>
         </div>
@@ -242,23 +262,32 @@ Example:
         });
       },
 
+      _isSection: function (elem) {
+        return elem.tagName === 'REST-API-SECTION';
+      },
+
+      _getDocItems: function (item) {
+        return item.queryAllEffectiveChildren('rest-api-doc');
+      },
+
       _setColumns: function () {
-        var columns = this.queryAllEffectiveChildren('rest-api-doc');
+        var columns = this.queryAllEffectiveChildren('rest-api-doc, rest-api-section');
         this.set('_columns', columns);
       },
 
       endpointChanged: function (e) {
         var element = e.detail.item;
-        var _endpoint = this.$.endpointRepeat.itemForElement(element);
+        var data = element._templateInstance.__data__;
+        var _endpoint = data.endpoint || data.item;
         this.set('_endpoint', _endpoint);
       },
 
       _convertToDescriptor: function (param) {
-        var key = param.getAttribute('key');
-        var type = param.getAttribute('type');
-        var values = param.getAttribute('values');
+        var key = param.key;
+        var type = param.type;
+        var values = param.values;
         return {
-          default: values ? values.split(',') : undefined,
+          default: values ? values.join(', ') : undefined,
           desc: param.innerText,
           name: key,
           published: true,
@@ -280,8 +309,7 @@ Example:
 
       _displayResult: function (e) {
         var response = e.detail.response;
-        this.$.restApiLiveResult.setReponse(response)
-        console.log(response);
+        this.$.restApiLiveResult.setResponse(response)
       }
     });
   </script>
