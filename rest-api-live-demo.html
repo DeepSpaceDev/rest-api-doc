@@ -6,10 +6,12 @@
       :host {
         display: block;
       }
+
       paper-button {
         background: var(--accent-color);
         width: 100%;
       }
+
       paper-input {
         display: inline-block;
         width: calc(50% - 2px);
@@ -17,9 +19,11 @@
         --paper-input-container-input-color: #fff;
         --paper-input-container-focus-color: var(--accent-color);
       }
+
       .title {
         margin: 8px 0;
       }
+
       .container {
         margin-left: 8px;
       }
@@ -91,6 +95,7 @@
         },
 
         sendRequest: function () {
+          this.fire('http-result', {response: null});
           var url = this.baseUrl + this.endpoint.url + '?';
           var method = this.endpoint.method.toUpperCase();
           var paramInputs = this.$.params.querySelectorAll('paper-input');
@@ -127,12 +132,15 @@
             method: method,
             headers: headers,
             body: method !== 'GET' && method !== 'HEAD' && method !== 'TRACE' &&
-                  method !== 'OPTIONS' && method !== 'CONNECT' ? body : undefined
+            method !== 'OPTIONS' && method !== 'CONNECT' ? body : undefined
           };
-
-          fetch(url, init).then(function (response) {
-            this.fire('http-result', {response: response});
-          }.bind(this));
+          fetch(url, init)
+              .then(function (response) {
+                this.fire('http-result', {response: response});
+              }.bind(this))
+              .catch(function (error) {
+                this.fire('http-result', {response: "Request failed"});
+              }.bind(this));
         }
       });
     })();

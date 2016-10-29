@@ -31,16 +31,22 @@
         properties: {},
 
         ready: function () {
-          this.$.jsonResponse.data = "Send a request first";
+          this.setResponse();
         },
 
-        setReponse: function (response) {
-          var headers = response.headers;
-          var contentType = headers.get('Content-Type');
-          if (contentType === 'application/json') {
-            response.json().then(function (json) {
-              this.$.jsonResponse.data = json;
-            }.bind(this));
+        setResponse: function (response) {
+          if (response instanceof Object) {
+            var headers = response.headers;
+            var contentType = headers.get('Content-Type');
+            if (contentType === 'application/json') {
+              response.json().then(function (json) {
+                this.$.jsonResponse.data = json;
+              }.bind(this));
+            }
+          } else if (typeof response === 'string') {
+            this.$.jsonResponse.data = response;
+          } else {
+            this.$.jsonResponse.data = "No request sent";
           }
         }
 
