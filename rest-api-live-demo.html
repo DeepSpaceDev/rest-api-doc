@@ -1,5 +1,8 @@
 <link rel="import" href="../polymer/polymer.html">
 
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-button/paper-button.html">
+
 <dom-module id="rest-api-live-demo">
   <template>
     <style>
@@ -60,6 +63,7 @@
     </div>
     <paper-button raised on-tap="sendRequest">Send Request</paper-button>
   </template>
+  <script src="string_includes_polyfill.js"></script>
   <script>
     (function () {
       'use strict';
@@ -94,6 +98,18 @@
           return false;
         },
 
+        parseValue: function (val) {
+          if (typeof val === 'string' && val.length > 0) {
+            // Try parsing booleans and numbers
+            try {
+              return JSON.parse(val);
+            } catch (e) {
+              return val;
+            }
+          }
+          return val;
+        },
+
         sendRequest: function () {
           this.fire('http-result', {response: null});
           var url = this.baseUrl + this.endpoint.url + '?';
@@ -101,37 +117,61 @@
           var paramInputs = this.$.params.querySelectorAll('paper-input');
           var headerInputs = this.$.headers.querySelectorAll('paper-input');
           var bodyInputs = this.$.body.querySelectorAll('paper-input');
+          var value, key, body;
 
-          for (var i = 0; i < paramInputs.length; i++) {
-            var value = paramInputs[i].value;
-            var key = paramInputs[i].label;
-            if (value) {
+          for (var p = 0; p < paramInputs.length; p++) {
+            value = this.parseValue(paramInputs[p].value);
+            key = paramInputs[p].label;
               url += key + '=' + value + '&';
-            }
+
           }
+          url = url.substr(0, url.length - 1);
 
           var headers = new Headers();
-          for (var i = 0; i < headerInputs.length; i++) {
-            var value = headerInputs[i].value;
-            var key = headerInputs[i].label;
+          for (var h = 0; h < headerInputs.length; h++) {
+            value = headerInputs[h].value;
+            key = headerInputs[h].label;
             if (value) {
               headers.append(key, value);
             }
           }
 
-          var body = new URLSearchParams();
-          for (var i = 0; i < bodyInputs.length; i++) {
-            var value = bodyInputs[i].value;
-            var key = bodyInputs[i].label;
-            if (value) {
-              body.append(key, value);
+          if (headers.has('Content-Type')) {
+            var contentType = headers.get('Content-Type');
+            if (contentType.includes('application/json')) {
+              body = {};
+              for (var bJson = 0; bJson < bodyInputs.length; bJson++) {
+                value = this.parseValue(bodyInputs[bJson].value);
+                key = bodyInputs[bJson].label;
+                body[key] = value;
+              }
+              body = JSON.stringify(body);
+            } else if (contentType.includes('application/x-www-form-urlencode')) {
+              body = new URLSearchParams();
+              for (var bUrl = 0; bUrl < bodyInputs.length; bUrl++) {
+                value = this.parseValue(bodyInputs[bUrl].value);
+                key = bodyInputs[bUrl].label;
+                body.append(key, value);
+              }
+            } else if (contentType.includes('multipart/form-data')) {
+              body = new FormData();
+              for (var bForm = 0; bForm < bodyInputs.length; bForm++) {
+                value = this.parseValue(bodyInputs[bForm].value);
+                key = bodyInputs[bForm].label;
+                body.append(key, value);
+              }
+            } else {
+              if (bodyInputs.length > 0)
+                body = bodyInputs[0];
+              else
+                body = null;
             }
           }
 
           var init = {
             method: method,
             headers: headers,
-            body: method !== 'GET' && method !== 'HEAD' && method !== 'TRACE' &&
+            body: body && method !== 'GET' && method !== 'HEAD' && method !== 'TRACE' &&
             method !== 'OPTIONS' && method !== 'CONNECT' ? body : undefined
           };
           fetch(url, init)
