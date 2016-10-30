@@ -1,4 +1,5 @@
-<link rel="import" href="../polymer/polymer.html" xmlns="http://www.w3.org/1999/html">
+<link rel="import" href="../polymer/polymer.html">
+<link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic' rel='stylesheet' type='text/css'>
 
 <link rel="import" href="../paper-drawer-panel/paper-drawer-panel.html">
 <link rel="import" href="../paper-header-panel/paper-header-panel.html">
@@ -6,24 +7,65 @@
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../paper-item/paper-item.html">
 
-<link rel="import" href="../iron-doc-viewer/iron-doc-property.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../iron-selector/iron-selector.html">
+
+<link rel="import" href="rest-api-property.html">
 
 <link rel="import" href="rest-api-language-selector.html">
 <link rel="import" href="rest-api-code-snippet.html">
 <link rel="import" href="rest-api-live-demo.html">
 <link rel="import" href="rest-api-live-response.html">
 
+<link rel="import" href="rest-api-section.html">
+<link rel="import" href="rest-api-doc.html">
+<link rel="import" href="rest-api-explanation.html">
 <link rel="import" href="rest-api-param.html">
 <link rel="import" href="rest-api-header.html">
+<link rel="import" href="rest-api-kv-body.html">
+<link rel="import" href="rest-api-kv-body.html">
 
 <!--
-An element providing a solution to no problem in particular.
+`rest-api-page` is the containing element for a complete [REST API](https://www.wikiwand.com/en/Representational_state_transfer) documentation.
 
-Example:
+Example 1 (Get request):
 
-    <rest-api-page></rest-api-page>
+    <rest-api-page base-url="https://httpbin.org" app-name="Example RESTful APP">
+      <rest-api-doc title="Get request" endpoint="/get" method="GET">
+        <rest-api-param key="param" type="number" values="[1, 2, 3]">Explanation for the param</rest-api-param>
+        <rest-api-header key="Content-Type" values='["application/json"]'>Explanation for the header</rest-api-header>
+        <rest-api-explanation>Explanation for the endpoint</rest-api-explanation>
+      </rest-api-doc>
+    </rest-api-page>
+
+Example 2 (Post request w/ body):
+
+    <rest-api-page baseUrl="https://httpbin.org">
+      <rest-api-doc title="Post request" endpoint="/post" method="POST">
+        <rest-api-kv-body key="key" type="boolean" values="[true, false]">Explanation for the kv-value pair in the body</rest-api-param>
+        <rest-api-header key="Content-Type" values='["application/json"]'>Explanation for the header</rest-api-header>
+        <rest-api-explanation>Explanation for the endpoint</rest-api-explanation>
+      </rest-api-doc>
+    </rest-api-page>
+
+Example 3 (Defining sections):
+
+    <rest-api-page baseUrl="https://httpbin.org">
+      <rest-api-section heading="A section">
+        <rest-api-doc title="Post request" endpoint="/post" method="POST">
+          <rest-api-kv-body key="key" type="boolean" values="[true, false]">Explanation for the kv-value pair in the body</rest-api-param>
+          <rest-api-header key="Content-Type" values='["application/json"]'>Explanation for the header</rest-api-header>
+          <rest-api-explanation>Explanation for the endpoint</rest-api-explanation>
+        </rest-api-doc>
+      </rest-api-section>
+      <rest-api-doc title="Get request" endpoint="/get" method="GET">
+        <rest-api-param key="param" type="number" values="[1, 2, 3]">Explanation for the param</rest-api-param>
+        <rest-api-header key="Content-Type" values='["application/json"]'>Explanation for the header</rest-api-header>
+        <rest-api-explanation>Explanation for the endpoint</rest-api-explanation>
+      </rest-api-doc>
+    </rest-api-page>
+
+As you maybe realised using a `rest-api-section` works seamlessly with a `rest-api-doc` element directly in the `rest-api-page`.
 
 @group REST Elements
 @element rest-api-page
@@ -33,43 +75,61 @@ Example:
 <dom-module id="rest-api-page">
   <template>
     <style>
-      :root {
+      :host {
+        /* Default Styling */
+        /* TODO: Let user customize styles */
         --primary-color: #9C27B0;
         --accent-color: #448AFF;
-        font-family: 'Roboto', 'Noto', sans-serif;
-      }
-      :host {
         display: block;
         font-family: 'Roboto', 'Noto', sans-serif;
       }
+      /* Styling for `Param`, `Headers` and `Body` headings */
       h4 {
         color: #4b4b4b;
       }
-      iron-doc-property {
+      /* Cursor on active paper-items */
+      paper-item {
+        cursor: pointer;
+      }
+      /* Style section headings */
+      paper-item[disabled] {
+        color: #818181;
+        font-size: 20px;
+        align-items: flex-end;
+        min-height: 32px;
+      }
+      /* Background color for `params`, `headers` and `body` doc */
+      rest-api-property {
         background: #eee;
       }
-      .request {
+      /* Styling for the general doc */
+      .general-doc {
         padding: 8px 0;
         font-size: 18px;
       }
-      .divider {
-        color: #4a4a4a;
-      }
+      /* Styling for the method */
       .method {
         text-transform: uppercase;
         color: var(--accent-color);
       }
+      .dash {
+        color: #4a4a4a;
+      }
+      /* Lighter color for base URL */
       .base-url {
         color: #838383;
       }
+      /* Darker color for endpoint after base URL */
       .endpoint {
         font-style: italic;
         color: #4a4a4a;
       }
+      /* Styling for the endpoint selection */
       .drawer-content {
         background: #f0f0f0;
         height: 100%;
       }
+      /* Remove default margin/padding of `paper-toolbar` */
       .toolbar-wrapper {
         position: absolute;
         width: 100%;
@@ -78,19 +138,27 @@ Example:
         padding: 0 16px;
         height: 100%;
       }
+      /* Default styling for main content section */
       .content {
         display: flex;
         height: 100%;
       }
+      /* Center endpoint title */
       .endpoint-title {
         align-self: center;
       }
+      /* Styling for the documentation section */
       .doc {
         flex: 4;
         display: flex;
-        padding: 16px;
+        padding: 16px 0;
         flex-direction: column;
       }
+      /* Full width `param`, `header` and `body` property doc */
+      .doc > :not(rest-api-property):not(paper-icon-button) {
+        padding: 0 16px;
+      }
+      /* Styling for the example section */
       .example {
         flex: 3;
         display: flex;
@@ -99,31 +167,42 @@ Example:
         padding: 16px;
         flex-direction: column;
       }
+      /* Styling for toolbar documentation section */
       paper-toolbar .doc {
         flex-direction: row;
       }
+      /* Styling for toolbar example section */
       paper-toolbar .example {
         flex-direction: row;
         background: #414141;
       }
+      /* Scrollbars for documentation and example section */
       .body .doc {
         overflow-y: auto;
       }
       .body .example {
-        min-height: 500px;
         overflow-y: auto;
+        min-height: 500px;
       }
+      /* Set width for all children of example section */
       .body .example > * {
         width: calc(100% - 32px);
       }
+      /* Styling for small desktop screens */
       @media (max-width: 1000px) {
+        /* Double size of main content paper-toolbar */
         paper-header-panel[main] paper-toolbar {
           height: 118px;
         }
-        .content {
-          flex-direction: column;
+        /* Double size of paper-toolbars content area */
+        paper-toolbar .content {
           height: 118px;
         }
+        /* Put documentation and example section in a single column */
+        .content {
+          flex-direction: column;
+        }
+        /* Remove flex and overflow styling from documentation and example section */
         .body .doc {
           flex: none;
           overflow-y: initial;
@@ -135,75 +214,131 @@ Example:
       }
     </style>
     <paper-drawer-panel drawer-width="220px">
+      <!-- [Drawer start] -->
       <paper-header-panel drawer>
+        <!-- [Toolbar start] -->
         <paper-toolbar>
-          <div>Application</div>
+          <div>[[appName]]</div>
         </paper-toolbar>
+        <!-- [Toolbar end] -->
         <div class="drawer-content">
-          <iron-selector selected="0" on-iron-select="endpointChanged">
-            <template id="endpointRepeat" is="dom-repeat" items="[[_columns]]" as="column">
-              <paper-item>[[column.title]]</paper-item>
+          <!-- [Selector start] -->
+          <iron-selector selected="0" on-iron-select="_endpointChanged"
+                         fallback-selection="0" selectable=".selectable-endpoint">
+            <!-- Loop over all direct children of `rest-api-page`: `rest-api-doc` and `rest-api-section` elements -->
+            <!-- [Loop start] -->
+            <template id="endpointRepeat" is="dom-repeat" items="[[_endpoints]]">
+              <!-- [Element is a `rest-api-section` element] -->
+              <template is="dom-if" if="[[_isSection(item)]]">
+                <!-- Display heading of section in disabled `paper-item` -->
+                <paper-item disabled>[[item.heading]]</paper-item>
+                <!-- Loop over all `rest-api-doc` elements in `rest-api-section` element -->
+                <template is="dom-repeat" items="[[_getDocItems(item)]]" as="endpoint">
+                  <paper-item class="selectable-endpoint">[[endpoint.title]]</paper-item>
+                </template>
+              </template>
+              <!-- [Element is a `rest-api-doc` element] -->
+              <template is="dom-if" if="[[!_isSection(item)]]">
+                <paper-item class="selectable-endpoint">[[item.title]]</paper-item>
+              </template>
             </template>
+            <!-- [Loop end] -->
           </iron-selector>
+          <!-- [Selector end] -->
         </div>
       </paper-header-panel>
+      <!-- [Drawer end] -->
+      <!-- [Main content start] -->
       <paper-header-panel main>
+        <!-- [Toolbar start] -->
         <paper-toolbar>
+          <!-- wrapper for removing default padding/margin of `paper-toolbar` -->
+          <!-- [wrapper start] -->
           <div class="toolbar-wrapper">
+            <!-- split toolbar in 2 parts: one for the whole doc and the other for the examples -->
+            <!-- [splitter start] -->
             <div class="content">
               <div class="doc">
+                <!-- Show icon if drawer is in narrow layout to toggle drawer -->
                 <paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
                 <div class="endpoint-title">[[_endpoint.title]]</div>
               </div>
               <div class="example">
-                <rest-api-language-selector language="{{language}}"></rest-api-language-selector>
+                <template is="dom-if" if="[[!noCodeSnippets]]">
+                  <!-- Selector for example code snippet language -->
+                  <rest-api-language-selector language="{{language}}"></rest-api-language-selector>
+                </template>
               </div>
             </div>
+            <!-- [splitter end] -->
           </div>
+          <!-- [wrapper end] -->
         </paper-toolbar>
+        <!-- [Toolbar end] -->
+        <!-- split Content section in 2 parts: one for the whole doc and the other for the examples -->
+        <!-- [splitter/Content section start] -->
         <div class="body content">
+          <!-- [doc start] -->
           <div class="doc">
-            <div class="request">
+            <!-- General info about the endpoint -->
+            <div class="general-doc">
               <span class="method">[[_endpoint.method]]</span>
-              <span class="divider"> - </span>
+              <span class="dash"> - </span>
               <span class="base-url">[[baseUrl]]</span>
-              <span class="endpoint">[[_endpoint.url]]</span>
+              <span class="endpoint">[[_endpoint.endpoint]]</span>
             </div>
+            <!-- Explanation of the endpoint -->
             <div class="explanation">[[_endpoint.explanation]]</div>
+            <!-- Documentation of the params -->
             <template is="dom-if" if="[[_isSet(_endpoint.params)]]">
               <h4>Params:</h4>
               <template is="dom-repeat" items="[[_endpoint.params]]" as="param">
-                <iron-doc-property descriptor="[[_convertToDescriptor(param)]]"></iron-doc-property>
+                <rest-api-property descriptor="[[param]]"></rest-api-property>
               </template>
             </template>
+            <!-- Documentation of the headers -->
             <template is="dom-if" if="[[_isSet(_endpoint.headers)]]">
               <h4>Headers:</h4>
               <template is="dom-repeat" items="[[_endpoint.headers]]" as="header">
-                <iron-doc-property descriptor="[[_convertToDescriptor(header)]]"></iron-doc-property>
+                <rest-api-property descriptor="[[header]]"></rest-api-property>
               </template>
             </template>
+            <!-- Documentation of the body -->
             <template is="dom-if" if="[[_isSet(_endpoint.body)]]">
               <h4>Body:</h4>
+              <!-- [If body is provided as key-value pairs] -->
               <template is="dom-if" if="[[_isArray(_endpoint.body)]]">
-                <template is="dom-repeat" items="[[_endpoint.body]]" as="kvPain">
-                  <iron-doc-property descriptor="[[_convertToDescriptor(kvPair)]]"></iron-doc-property>
+                <template is="dom-repeat" items="[[_endpoint.body]]" as="kvPair">
+                  <rest-api-property descriptor="[[kvPair]]"></rest-api-property>
                 </template>
               </template>
               <template is="dom-if" if="[[!_isArray(_endpoint.body)]]">
                 <!-- TODO: display value, e.g. as plain text -->
+                <!-- Currently not supported. PR's welcome -->
               </template>
             </template>
           </div>
+          <!-- [doc end] -->
+          <!-- [examples start] -->
           <div class="example">
-            <rest-api-code-snippet base-url="[[baseUrl]]" endpoint="[[_endpoint]]" language="[[language]]">
-            </rest-api-code-snippet>
-            <rest-api-live-demo base-url="[[baseUrl]]" endpoint="[[_endpoint]]"
-                                on-http-result="_displayResult"></rest-api-live-demo>
-            <rest-api-live-response id="restApiLiveResult"></rest-api-live-response>
+            <!-- Display code snippets if wanted -->
+            <template is="dom-if" if="[[!noCodeSnippets]]">
+              <rest-api-code-snippet base-url="[[baseUrl]]" endpoint="[[_endpoint]]" language="[[language]]">
+              </rest-api-code-snippet>
+            </template>
+            <!-- Display live demo with response if wanted -->
+            <template is="dom-if" if="[[!noLiveDemo]]">
+              <rest-api-live-demo base-url="[[baseUrl]]" endpoint="[[_endpoint]]"
+                                  on-http-result="_displayResult"></rest-api-live-demo>
+              <rest-api-live-response id="restApiLiveResult"></rest-api-live-response>
+            </template>
           </div>
+          <!-- [examples end] -->
         </div>
+        <!-- [splitter/Content section end] -->
       </paper-header-panel>
     </paper-drawer-panel>
+    <!-- [Main content end] -->
     <content></content>
   </template>
   <script>
@@ -211,21 +346,40 @@ Example:
       is: 'rest-api-page',
 
       properties: {
-        liveDemo: {
+        /**
+         * The app name the documentation should be for
+         */
+        appName: {
+          type: String,
+          value: ''
+        },
+        /**
+         * If no live demo should be shown
+         */
+        noLiveDemo: {
           type: Boolean,
           value: false
         },
-        codeSnippets: {
+        /**
+         * If no code snippets should be shown
+         */
+        noCodeSnippets: {
           type: Boolean,
           value: false
         },
+        /**
+         * The base URL of the API
+         */
         baseUrl: {
           type: String,
           value: ''
         },
-        _columns: {
+        _endpoints: {
           type: Array
         },
+        /**
+         * The selected language for the code snippets
+         */
         language: {
           type: String,
           value: 'python'
@@ -233,36 +387,61 @@ Example:
       },
 
       ready: function () {
-        this.set('_columns', []);
+        this.set('_endpoints', []);
+        // Recalculate and set endpoints of the API page on changed `innerHTML` of `rest-api-page`
         this._observer = Polymer.dom(this).observeNodes(function (info) {
-          this._setColumns();
-        });
+          this._setEndpoints();
+        }.bind(this));
       },
 
-      _setColumns: function () {
-        var columns = this.queryAllEffectiveChildren('rest-api-doc');
-        this.set('_columns', columns);
+      /**
+       * If element is a `rest-api-section` element.
+       * @param elem The element to check
+       * @returns {boolean} Is a `rest-api-section` element
+       * @private
+       */
+      _isSection: function (elem) {
+        return elem.tagName === 'REST-API-SECTION';
       },
 
-      endpointChanged: function (e) {
+      /**
+       * Get all `rest-api-doc` elements contained in the node.
+       * @param node The node to search for `rest-api-doc` elements
+       * @returns {?Array<Node>} An array of nodes contained in the node
+       * @private
+       */
+      _getDocItems: function (node) {
+        return node.queryAllEffectiveChildren('rest-api-doc');
+      },
+
+      /**
+       * Set all `rest-api-doc` and `rest-api-section` elements contained.
+       * in the `rest-api-page` to the `_endpoints` property.
+       * @private
+       */
+      _setEndpoints: function () {
+        var columns = this.queryAllEffectiveChildren('rest-api-doc, rest-api-section');
+        this.set('_endpoints', columns);
+      },
+
+      /**
+       * Called when the selected endpoint was changed. Set current endpoint to `_endpoint` property.
+       * @param e
+       * @private
+       */
+      _endpointChanged: function (e) {
         var element = e.detail.item;
-        var _endpoint = this.$.endpointRepeat.itemForElement(element);
+        var data = element._templateInstance.__data__;
+        var _endpoint = data.endpoint || data.item;
         this.set('_endpoint', _endpoint);
       },
 
-      _convertToDescriptor: function (param) {
-        var key = param.getAttribute('key');
-        var type = param.getAttribute('type');
-        var values = param.getAttribute('values');
-        return {
-          default: values ? values.split(',') : undefined,
-          desc: param.innerText,
-          name: key,
-          published: true,
-          type: type
-        };
-      },
-
+      /**
+       * If `params`, `headers` or `body` is set
+       * @param obj Array of `params`, `headers` or `body`
+       * @returns {boolean} Is `params`, `headers` or `body` set
+       * @private
+       */
       _isSet: function (obj) {
         if (obj) {
           if (obj instanceof Array)
@@ -271,14 +450,24 @@ Example:
         return false;
       },
 
+      /**
+       * Is param an array
+       * @param obj variable to check if it's an array
+       * @returns {boolean} Is an array
+       * @private
+       */
       _isArray: function (obj) {
         return obj && obj instanceof Array;
       },
 
+      /**
+       * Called when the live result was changed, display the new result
+       * @param e `e.detail.response` is the new HTTP result
+       * @private
+       */
       _displayResult: function (e) {
         var response = e.detail.response;
-        this.$.restApiLiveResult.setReponse(response)
-        console.log(response);
+        this.$.restApiLiveResult.setResponse(response);
       }
     });
   </script>

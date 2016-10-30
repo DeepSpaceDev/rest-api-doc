@@ -4,9 +4,21 @@
 
 <link rel="import" href="../paper-button/paper-button.html">
 
+<!--
+`rest-api-language-selector` injects a horizontal scrollable language selector into your page.
+
+Example:
+
+      <rest-api-language-selector language="{{language}}"></rest-api-language-selector>
+
+@group REST Elements
+@element rest-api-language-selector
+@hero hero.svg
+-->
 <dom-module id="rest-api-language-selector">
   <template>
     <style>
+      /* Styling for the scrollbars */
       ::-webkit-scrollbar {
         height: 3px;
       }
@@ -62,15 +74,14 @@
         is: 'rest-api-language-selector',
 
         properties: {
+          /**
+           * The selected language
+           */
           language: {
             type: String,
             notify: true
           }
-        },
-
-        attached: function () {
         }
-
       });
     })();
   </script>

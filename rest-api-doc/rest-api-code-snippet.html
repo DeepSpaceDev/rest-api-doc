@@ -1,20 +1,29 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../syntax-highlight/syntax-highlight.html">
-<link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/zenburn.css">
+<link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/github-gist.css">
 
+<!--
+`rest-api-code-snippet` injects a code snippet of the desired language into your page.
+
+Example:
+
+      <rest-api-code-snippet base-url="https://example.com" endpoint="[[endpoint]]" language="python"></rest-api-code-snippet>
+
+-->
 <dom-module id="rest-api-code-snippet">
   <template>
     <style>
       :host {
         display: block;
       }
-
+      code#code {
+        border-radius: 2px;
+      }
       code#code::-webkit-scrollbar {
         height: 4px;
       }
-
       code#code::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.4);
+        background: rgba(0, 0, 0, 0.4);
         border-radius: 2px;
       }
     </style>
@@ -23,6 +32,7 @@
     </pre>
   </template>
   <script src="highlight.js"></script>
+  <script src="string_includes_polyfill.js"></script>
   <script>
     (function () {
       'use strict';
@@ -38,26 +48,29 @@
       var PATCH = 'PATCH';
 
       var CURL = 'curl';
-
       var JS = 'js';
-
       var PYTHON = 'python';
-      var PY_START = 'import requests\n\n';
-
       var GO = 'go';
-
       var RUBY = 'ruby';
-
       var PHP = 'php';
-
       var JAVA = 'java';
 
       Polymer({
         is: 'rest-api-code-snippet',
 
         properties: {
+          /**
+           * The base URL of the API
+           */
           baseUrl: String,
+          /**
+           * Information about the endpoint
+           * @type {{title: string, endpoint: string, params: Array<HTMLElement>, headers: Array<HTMLElement>, body: Array<HTMLElement>}}
+           */
           endpoint: Object,
+          /**
+           * The language of the code snippet
+           */
           language: {
             type: String,
             observer: '_languageChanged'
@@ -66,22 +79,58 @@
 
         observers: ['_updateSnippet(endpoint.*, language, baseUrl)'],
 
+        /**
+         * Parse a string value into a Boolean, Number or String
+         * @param val The value to parse
+         * @returns {boolean | number | string} Parsed value
+         */
+        parseValue: function (val) {
+          if (typeof val === 'string' && val.length > 0) {
+            // Try parsing booleans and numbers
+            try {
+              return JSON.parse(val);
+            } catch (e) {
+              return val;
+            }
+          }
+          return val;
+        },
+
+        /**
+         * Called when endpoint, language or baseUrl are changed
+         * @private
+         */
         _updateSnippet: function () {
           var snippet;
+          // Get/Parse needed values
           var method = this.endpoint.method;
-          var url = this.baseUrl + this.endpoint.url;
+          var url = this.baseUrl + this.endpoint.endpoint;
+
           var paramObjects = this.endpoint.params;
           var params = {};
+
+          var headerObjects = this.endpoint.headers;
+          var headers = {};
+
+          var bodyObjects = this.endpoint.body;
+          var body;
+
           for (var p = 0; p < paramObjects.length; p++) {
             params[paramObjects[p].key] = paramObjects[p]['values'][0];
           }
-          var headerObjects = this.endpoint.headers;
-          var headers = {};
+
           for (var h = 0; h < headerObjects.length; h++) {
             headers[headerObjects[h].key] = headerObjects[h]['values'][0];
           }
-          var body = this.endpoint.body;
-
+          if (bodyObjects instanceof Array) {
+            body = {};
+            for (var b = 0; b < bodyObjects.length; b++) {
+              body[bodyObjects[b].key] = this.parseValue(bodyObjects[b].values[0]);
+            }
+          } else {
+            body = bodyObjects;
+          }
+          // Get code snippet based on language
           switch (this.language) {
             case CURL:
               snippet = this.getCurlSnippet(method, url, params, headers, body);
@@ -108,48 +157,306 @@
               snippet = 'Language currently not supported. Unfortunately there are no current plans to implement it ' +
                   ':( PR are welcome';
           }
+          // Display code snippet and highlight it
           this.$.code.innerText = snippet;
           hljs.highlightBlock(this.$.code);
         },
 
+        /**
+         * Get a curl snippet
+         * @param method The request method
+         * @param url The full url: base URL + endpoint
+         * @param params Param object
+         * @param headers Header object
+         * @param body Body object
+         * @returns {string} A curl snippet
+         */
         getCurlSnippet: function (method, url, params, headers, body) {
           var snippet = '';
 
           switch (method) {
             case GET:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case HEAD:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case POST:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case PUT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case DELETE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case TRACE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case OPTIONS:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case CONNECT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case PATCH:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
           }
           return snippet;
         },
 
+        /**
+         * Get a javascript snippet
+         * @param method The request method
+         * @param url The full url: base URL + endpoint
+         * @param params Param object
+         * @param headers Header object
+         * @param body Body object
+         * @returns {string} A javascript snippet
+         */
         getJsSnippet: function (method, url, params, headers, body) {
           var snippet = '';
           var requestString = '', headerString = '', bodyString = '';
+          var value, key;
+          // Add params to URL
+          if (!this.isEmptyObject(params)) {
+            url += '?';
+            for (var param in params) {
+              if (params.hasOwnProperty(param)) {
+                url += param + '=' + params[param] + '&';
+              }
+            }
+            url = url.substr(0, url.length - 1);
+          }
+          // Construct header object as snippet
+          if (!this.isEmptyObject(headers)) {
+            headerString += 'var headers = new Headers();\n';
+            for (var header in headers) {
+              if (headers.hasOwnProperty(header)) {
+                headerString += `headers.append('${header}', '${headers[header]}');\n`;
+              }
+            }
+            headerString += '\n';
+          }
+          // Construct body as snippet
+          var contentType = headers['Content-Type'];
+          if (contentType && contentType.includes('application/json')) {
+            // Construct as JSON body
+            bodyString = `var body = ${JSON.stringify(body, null, '\t')};\n\n`;
+          } else if (contentType && contentType.includes('application/x-www-form-urlencode')) {
+            // Construct as x-www-form-urlencode body
+            bodyString = 'body = new URLSearchParams();\n';
+            for (var bUrl in body) {
+              if (body.hasOwnProperty(bUrl)) {
+                value = body[bUrl];
+                key = bUrl;
+                bodyString += `body.append('${key}', ${typeof value === 'string' ? `'${value}'` : value});\n`;
+              }
+            }
+            bodyString += '\n';
+          } else if (contentType && contentType.includes('multipart/form-data')) {
+            // Construct as multipart/form-data body
+            bodyString = 'body = new FormData();\n';
+            for (var bForm in body) {
+              if (body.hasOwnProperty(bForm)) {
+                value = body[bForm];
+                key = bForm;
+                bodyString += `body.append('${key}', ${typeof value === 'string' ? `'${value}'` : value});\n`;
+              }
+            }
+            bodyString += '\n';
+          } else if (body && body.length > 0) {
+            // Construct as raw string body
+            bodyString = `var body = '${body};\n\n`;
+          }
+          // Construct init and fetch code snippet
+          var init = "var init = {" +
+              `\n\tmethod: '${method}'` +
+              `${!this.isEmptyObject(headers) ? `,\n\theaders: headers` : ''}` +
+              `${body ? `,\n\tbody: body` : ''}` +
+              '\n};';
+          requestString += `${init}\n\n`;
+          requestString += `var request = fetch(\n\t'${url}', init);\n`;
+          requestString += `request.then(result => {\n\tconsole.log(result);\n});`;
+
+          switch (method) {
+            case GET:
+              snippet += headerString + requestString;
+              break;
+            case HEAD:
+              snippet += headerString + requestString;
+              break;
+            case POST:
+              snippet += headerString + bodyString + requestString;
+              break;
+            case PUT:
+              snippet += headerString + bodyString + requestString;
+              break;
+            case DELETE:
+              snippet += headerString + bodyString + requestString;
+              break;
+            case TRACE:
+              snippet += headerString + requestString;
+              break;
+            case OPTIONS:
+              snippet += headerString + requestString;
+              break;
+            case CONNECT:
+              snippet += headerString + requestString;
+              break;
+            case PATCH:
+              snippet += headerString + bodyString + requestString;
+              break;
+          }
+          return snippet;
+        },
+
+        /**
+         * Get a python snippet
+         * @param method The request method
+         * @param url The full url: base URL + endpoint
+         * @param params Param object
+         * @param headers Header object
+         * @param body Body object
+         * @returns {string} A python snippet
+         */
+        getPythonSnippet: function (method, url, params, headers, body) {
+          var snippet ='import requests\n\n';
+          var requestString = '', paramString = '', headerString = '', bodyString = '';
+          var key, value;
+          // Start request string
+          requestString = `response = request.get('${url}'`;
+          // Construct params payload object as snippet
+          if (!this.isEmptyObject(params)) {
+            paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
+            requestString += ',\n\t\t\tparams=payload';
+          }
+          // Construct header object as snippet
+          if (!this.isEmptyObject(headers)) {
+            headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
+            requestString += ', headers=headers';
+          }
+          // Construct body as snippet
+          var contentType = headers['Content-Type'];
+          if (contentType &&
+              (contentType.includes('application/json') || contentType.includes('application/x-www-form-urlencode'))) {
+            // Construct as json or x-www-form-urlencode body
+            bodyString = `body = ${JSON.stringify(body, null, '\t')}\n\n`;
+            requestString += ', data=body';
+          } else if (contentType && contentType.includes('multipart/form-data')) {
+            // Construct as snippet multipart/form-data
+            bodyString = 'body = (';
+            for (var bForm in body) {
+              if (body.hasOwnProperty(bForm)) {
+                value = body[bForm];
+                key = bForm;
+                bodyString += `\n\t('${key}', ${typeof value === 'string' ? `'${value}'` : value}),`;
+              }
+            }
+            bodyString = bodyString.substr(0, bodyString.length - 1);
+            bodyString += '\n)\n\n';
+            requestString += ', files=body';
+          } else if (body && body.length > 0) {
+            // Construct as raw string body
+            bodyString = `body = '${body}';\n\n`;
+            requestString += ', data=body';
+          }
+          // Replace `true` and `false` with Pythons `True` and `False`
+          bodyString = bodyString.split('true').join('True').split('false').join('False');
+          // Close request string
+          requestString += ')\n';
+
+          switch (method) {
+            case GET:
+              snippet += paramString + headerString + requestString;
+              break;
+            case HEAD:
+              snippet += paramString + headerString + requestString;
+              break;
+            case POST:
+              snippet += paramString + headerString + bodyString + requestString;
+              break;
+            case PUT:
+              snippet += paramString + headerString + bodyString + requestString;
+              break;
+            case DELETE:
+              snippet += paramString + headerString + bodyString + requestString;
+              break;
+            case TRACE:
+              snippet += paramString + headerString + requestString;
+              break;
+            case OPTIONS:
+              snippet += paramString + headerString + requestString;
+              break;
+            case CONNECT:
+              snippet += paramString + headerString + requestString;
+              break;
+            case PATCH:
+              snippet += paramString + headerString + bodyString + requestString;
+              break;
+          }
+          return snippet;
+        },
+
+        /**
+         * Get a go snippet
+         * @param method The request method
+         * @param url The full url: base URL + endpoint
+         * @param params Param object
+         * @param headers Header object
+         * @param body Body object
+         * @returns {string} A go snippet
+         */
+        getGoSnippet: function (method, url, params, headers, body) {
+          var snippet = '';
+
+          switch (method) {
+            case GET:
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              break;
+            case HEAD:
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              break;
+            case POST:
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              break;
+            case PUT:
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              break;
+            case DELETE:
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              break;
+            case TRACE:
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              break;
+            case OPTIONS:
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              break;
+            case CONNECT:
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              break;
+            case PATCH:
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              break;
+          }
+          return snippet;
+        },
+
+        /**
+         * Get a ruby snippet
+         * @param method The request method
+         * @param url The full url: base URL + endpoint
+         * @param params Param object
+         * @param headers Header object
+         * @param body Body object
+         * @returns {string} A ruby snippet
+         */
+        getRubySnippet: function (method, url, params, headers, body) {
+          var snippet = 'require \'rest-client\'\n\n';
+          var requestString = '', headerString = '', bodyString = '';
+
+          requestString += `response = RestClient.${method.toLowerCase()} '${url}' `;
 
           if (!this.isEmptyObject(params)) {
             url += '?';
@@ -162,328 +469,148 @@
           }
 
           if (!this.isEmptyObject(headers)) {
-            headerString += 'var headers = new Headers();\n';
+            headerString += 'headers = {';
             for (var header in headers) {
               if (headers.hasOwnProperty(header)) {
-                headerString += `headers.append('${header}', '${headers[header]}');\n`;
+                headerString += '\n\t\'' + header + '\': ' + headers[header] + ',';
               }
             }
+            headerString = headerString.substr(0, headerString.length - 1);
+            headerString += '\n}\n\n';
+            requestString += 'headers=headers ';
           }
-
-          var init = "var init = {" +
-              `\n\tmethod: '${method}'` +
-              ',\n\theaders: headers' +
-              `${body ? `,\n\tbody: ${body}` : ''}` +
-              '\n};';
-          requestString += `\n${init}\n\n`;
-          requestString += `var request = new Request(\n\t'${url}', init);\n`;
-          requestString += `request.then(result => {\n\tconsole.log(result);\n});`;
 
           switch (method) {
             case GET:
               snippet += headerString + requestString;
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case HEAD:
               snippet += headerString + requestString;
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case POST:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case PUT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case DELETE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += headerString + requestString;
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case TRACE:
               snippet += headerString + requestString;
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case OPTIONS:
               snippet += headerString + requestString;
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case CONNECT:
               snippet += headerString + requestString;
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case PATCH:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
           }
           return snippet;
         },
 
-        getPythonSnippet: function (method, url, params, headers, body) {
-          var snippet = PY_START;
-          var requestString = '', paramString = '', headerString = '', bodyString = '';
-
-          switch (method) {
-            case GET:
-              requestString = `response = request.get('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              snippet += paramString + headerString + requestString + ')\n';
-              break;
-            case HEAD:
-              requestString = `response = request.head('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              snippet += paramString + headerString + requestString + ')\n';
-              break;
-            case POST:
-              requestString = `response = request.post('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              if (body) {
-                bodyString = `body = '${body}'`;
-                requestString += ', data=body';
-              }
-              snippet += paramString + headerString + bodyString + requestString + ')\n';
-              break;
-            case PUT:
-              requestString = `response = request.put('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              if (body) {
-                bodyString = `body = '${body}'`;
-                requestString += ', data=body';
-              }
-              snippet += paramString + headerString + bodyString + requestString + ')\n';
-              break;
-            case DELETE:
-              requestString = `response = request.delete('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              if (body) {
-                bodyString = `body = '${body}'`;
-                requestString += ', data=body';
-              }
-              snippet += paramString + headerString + bodyString + requestString + ')\n';
-              break;
-            case TRACE:
-              requestString = `response = request.trace('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              snippet += paramString + headerString + requestString + ')\n';
-              break;
-            case OPTIONS:
-              requestString = `response = request.options('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              snippet += paramString + headerString + requestString + ')\n';
-              break;
-            case CONNECT:
-              requestString = `response = request.connect('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              snippet += paramString + headerString + requestString + ')\n';
-              break;
-            case PATCH:
-              requestString = `response = request.patch('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              if (body) {
-                bodyString = `body = '${body}'`;
-                requestString += ', data=body';
-              }
-              snippet += paramString + headerString + bodyString + requestString + ')\n';
-              break;
-          }
-          return snippet;
-        },
-
-        getGoSnippet: function (method, url, params, headers, body) {
-          var snippet = '';
-
-          switch (method) {
-            case GET:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case HEAD:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case POST:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case PUT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case DELETE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case TRACE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case OPTIONS:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case CONNECT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case PATCH:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-          }
-          return snippet;
-        },
-
-        getRubySnippet: function (method, url, params, headers, body) {
-          var snippet = '';
-
-          switch (method) {
-            case GET:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case HEAD:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case POST:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case PUT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case DELETE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case TRACE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case OPTIONS:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case CONNECT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-            case PATCH:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
-              break;
-          }
-          return snippet;
-        },
-
+        /**
+         * Get a php snippet
+         * @param method The request method
+         * @param url The full url: base URL + endpoint
+         * @param params Param object
+         * @param headers Header object
+         * @param body Body object
+         * @returns {string} A php snippet
+         */
         getPhpSnippet: function (method, url, params, headers, body) {
           var snippet = '';
 
           switch (method) {
             case GET:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case HEAD:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case POST:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case PUT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case DELETE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case TRACE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case OPTIONS:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case CONNECT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case PATCH:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
           }
           return snippet;
         },
 
+        /**
+         * Get a java snippet
+         * @param method The request method
+         * @param url The full url: base URL + endpoint
+         * @param params Param object
+         * @param headers Header object
+         * @param body Body object
+         * @returns {string} A java snippet
+         */
         getJavaSnippet: function (method, url, params, headers, body) {
           var snippet = '';
 
           switch (method) {
             case GET:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case HEAD:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case POST:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case PUT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case DELETE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case TRACE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case OPTIONS:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case CONNECT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case PATCH:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;)';
+              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
           }
           return snippet;
         },
 
+        /**
+         * Check if object is empty
+         * @param obj The object to check
+         * @returns {boolean} Is empty
+         */
         isEmptyObject: function (obj) {
           for (var prop in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, prop)) {

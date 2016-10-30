@@ -1,0 +1,36 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+`rest-api-explanation` defines an explanation for an endpoint.
+
+Example:
+
+      <rest-api-page baseUrl="https://httpbin.org">
+        <rest-api-doc title="Get request" endpoint="/get" method="GET">
+          <rest-api-explanation>Explanation for the endpoint</rest-api-explanation>
+        </rest-api-doc>
+      </rest-api-page>
+
+@group REST Elements
+@element rest-api-explanation
+@hero hero.svg
+-->
+<dom-module id="rest-api-explanation">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <content></content>
+  </template>
+  <script>
+    Polymer({
+      is: 'rest-api-explanation',
+
+      hostAttributes: {
+        hidden: true
+      }
+    });
+  </script>
+</dom-module>

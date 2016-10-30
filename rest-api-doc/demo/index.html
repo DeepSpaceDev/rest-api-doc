@@ -14,42 +14,104 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <title>rest-api-doc Demo</title>
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../../polymer/polymer.html">
+  <link rel="import" href="../../marked-element/marked-element.html">
+  <link rel="import" href="../../prism-element/prism-highlighter.html">
+  <link rel="import" href="../../prism-element/prism-theme-default.html">
+
   <link rel="import" href="../rest-api-page.html">
   <link rel="import" href="../rest-api-doc.html">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 16px);
+    }
+    marked-element {
+      background-color: #eee;
+      border-radius: 3px;
+    }
+    #switcher {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #D50000;
+      color: #fff;
+    }
+  </style>
+  <style is="custom-style" include="prism-theme-default"></style>
 </head>
 <body unresolved>
 
-<p>An example of <code>&lt;rest-api-page&gt;</code>:</p>
+  <p>An example of <code>&lt;rest-api-page&gt;</code>:</p>
 
-<rest-api-page base-url="http://api.xtrm-sports.com">
-  <rest-api-doc title="Get Location" method="GET" url="/get">
-    <rest-api-param key="id" type="Number" values='[1, 12, 30]'>The ID for the location to fetch.</rest-api-param>
-    <rest-api-param key="language" type="String" values='["de", "en"]' optional>The requested language for the result.</rest-api-param>
-    <rest-api-header key="content-type" type="String" values='["application/json"]' optional>The requested language for the result.</rest-api-header>
-    <rest-api-explanation>Get every location by ID.</rest-api-explanation>
-  </rest-api-doc>
-  <rest-api-doc title="Search"></rest-api-doc>
-  <rest-api-doc title="List Locations"></rest-api-doc>
-  <rest-api-doc title="Add Location"></rest-api-doc>
-</rest-api-page>
+  <prism-highlighter></prism-highlighter>
 
-<script>
-  var seedElement = document.querySelector('rest-api-page');
-  /*seedElement.body = [{
-    key: 'mail',
-    type: 'string',
-    optional: false
-  },{
-    key: 'password',
-    type: 'string',
-    optional: false
-  },{
-    key: 'type',
-    type: 'string',
-    values: 'admin, organizer, judge',
-    optional: false
-  }];*/
-</script>
+  <template id="exampleCode">
+    <rest-api-page base-url="https://httpbin.org">
+      <rest-api-doc title="Get Request" method="GET" endpoint="/get">
+        <rest-api-param key="someparam" type="Number" values='[1, 12, 30]'>Some numerical param.</rest-api-param>
+        <rest-api-param key="otherparam" type="String" values='["a string", "another string"]' optional>Some string param</rest-api-param>
+        <rest-api-explanation>Send a get request to httpbin.org to see what's in the sent request.</rest-api-explanation>
+      </rest-api-doc>
+      <rest-api-section heading="POST requests">
+        <rest-api-doc title="application/json" method="POST" endpoint="/post">
+          <rest-api-kv-body key="someKey" type="Boolean" values="[true, false]">A boolean key</rest-api-kv-body>
+          <rest-api-kv-body key="anotherKey" type="String" values='["string", "some other string"]'>A string key</rest-api-kv-body>
+          <rest-api-header key="Content-Type" values='["application/json"]'></rest-api-header>
+          <rest-api-explanation>Send a post request to httpbin.org to see what's in the sent request.</rest-api-explanation>
+        </rest-api-doc>
+        <rest-api-doc title="application/x-www-form-urlencode" method="POST" endpoint="/post">
+          <rest-api-kv-body key="someKey" type="Boolean" values="[true, false]">A boolean key</rest-api-kv-body>
+          <rest-api-kv-body key="anotherKey" type="String" values='["string", "some other string"]'>A string key</rest-api-kv-body>
+          <rest-api-header key="Content-Type" values='["application/x-www-form-urlencode"]'></rest-api-header>
+          <rest-api-explanation>Send a post request to httpbin.org to see what's in the sent request.</rest-api-explanation>
+        </rest-api-doc>
+        <rest-api-doc title="multipart/form-data" method="POST" endpoint="/post">
+          <rest-api-kv-body key="someKey" type="Boolean" values="[true, false]">A boolean key</rest-api-kv-body>
+          <rest-api-kv-body key="anotherKey" type="String" values='["string", "some other string"]'>A string key</rest-api-kv-body>
+          <rest-api-header key="Content-Type" values='["multipart/form-data"]'></rest-api-header>
+          <rest-api-explanation>Send a post request to httpbin.org to see what's in the sent request.</rest-api-explanation>
+        </rest-api-doc>
+      </rest-api-section>
+    </rest-api-page>
+  </template>
 
+  <marked-element id="markedElement" hidden>
+    <div class="markdown-html code" id="code"></div>
+  </marked-element>
+
+  <template id="example" is="dom-bind"></template>
+
+  <paper-button id="switcher" raised></paper-button>
+
+  <script>
+    var exampleCode = document.querySelector('#exampleCode');
+    var markedElement = document.querySelector('#markedElement');
+    var example = document.querySelector('#example');
+    var switchButton = document.querySelector('#switcher');
+
+    var CODE_SNIPPET_BUTTON_TEXT = 'Show example';
+    var EXAMPLE_BUTTON_TEXT = 'Show code snippet';
+
+    switchButton.onclick = function () {
+      if (this.firstChild.textContent === EXAMPLE_BUTTON_TEXT) {
+        this.firstChild.textContent = CODE_SNIPPET_BUTTON_TEXT;
+        document.querySelector('rest-api-page').setAttribute('hidden', '');
+        markedElement.removeAttribute('hidden');
+      } else {
+        this.firstChild.textContent = EXAMPLE_BUTTON_TEXT;
+        markedElement.setAttribute('hidden', '');
+        document.querySelector('rest-api-page').removeAttribute('hidden');
+      }
+    };
+
+    switchButton.innerHTML = EXAMPLE_BUTTON_TEXT;
+
+    var codeSnippet = exampleCode.innerHTML;
+    var markdown = '```html\n' + codeSnippet.toString() + '\n```';
+    markedElement.markdown = markdown;
+    example.innerHTML = codeSnippet;
+  </script>
 </body>
 </html>
