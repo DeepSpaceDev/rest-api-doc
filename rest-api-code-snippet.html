@@ -18,7 +18,7 @@
       }
 
       code#code::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.4);
+        background: rgba(0, 0, 0, 0.4);
         border-radius: 2px;
       }
     </style>
@@ -27,6 +27,7 @@
     </pre>
   </template>
   <script src="highlight.js"></script>
+  <script src="string_includes_polyfill.js"></script>
   <script>
     (function () {
       'use strict';
@@ -63,21 +64,48 @@
 
         observers: ['_updateSnippet(endpoint.*, language, baseUrl)'],
 
+        parseValue: function (val) {
+          if (typeof val === 'string' && val.length > 0) {
+            // Try parsing booleans and numbers
+            try {
+              return JSON.parse(val);
+            } catch (e) {
+              return val;
+            }
+          }
+          return val;
+        },
+
         _updateSnippet: function () {
           var snippet;
           var method = this.endpoint.method;
           var url = this.baseUrl + this.endpoint.url;
+
           var paramObjects = this.endpoint.params;
           var params = {};
+
+          var headerObjects = this.endpoint.headers;
+          var headers = {};
+
+          var bodyObjects = this.endpoint.body;
+          var body;
+          var isKVBody = true;
+
           for (var p = 0; p < paramObjects.length; p++) {
             params[paramObjects[p].key] = paramObjects[p]['values'][0];
           }
-          var headerObjects = this.endpoint.headers;
-          var headers = {};
+
           for (var h = 0; h < headerObjects.length; h++) {
             headers[headerObjects[h].key] = headerObjects[h]['values'][0];
           }
-          var body = this.endpoint.body;
+          if (bodyObjects instanceof Array) {
+            body = {};
+            for (var b = 0; b < bodyObjects.length; b++) {
+              body[bodyObjects[b].key] = this.parseValue(bodyObjects[b].values[0]);
+            }
+          } else {
+            body = bodyObjects;
+          }
 
           switch (this.language) {
             case CURL:
@@ -147,6 +175,7 @@
         getJsSnippet: function (method, url, params, headers, body) {
           var snippet = '';
           var requestString = '', headerString = '', bodyString = '';
+          var value, key;
 
           if (!this.isEmptyObject(params)) {
             url += '?';
@@ -168,10 +197,37 @@
             headerString += '\n';
           }
 
+          var contentType = headers['Content-Type'];
+          if (contentType && contentType.includes('application/json')) {
+            bodyString = `var body = ${JSON.stringify(body, null, '\t')};\n\n`;
+          } else if (contentType && contentType.includes('application/x-www-form-urlencode')) {
+            bodyString = 'body = new URLSearchParams();\n';
+            for (var bUrl in body) {
+              if (body.hasOwnProperty(bUrl)) {
+                value = body[bUrl];
+                key = bUrl;
+                bodyString += `body.append('${key}', ${typeof value === 'string' ? `'${value}'` : value});\n`;
+              }
+            }
+            bodyString += '\n';
+          } else if (contentType && contentType.includes('multipart/form-data')) {
+            bodyString = 'body = new FormData();\n';
+            for (var bForm in body) {
+              if (body.hasOwnProperty(bForm)) {
+                value = body[bForm];
+                key = bForm;
+                bodyString += `body.append('${key}', ${typeof value === 'string' ? `'${value}'` : value});\n`;
+              }
+            }
+            bodyString += '\n';
+          } else if (body && body.length > 0) {
+              bodyString = `var body = '${body};\n\n`;
+          }
+
           var init = "var init = {" +
               `\n\tmethod: '${method}'` +
               `${!this.isEmptyObject(headers) ? `,\n\theaders: headers` : ''}` +
-              `${body ? `,\n\tbody: ${body}` : ''}` +
+              `${body ? `,\n\tbody: body` : ''}` +
               '\n};';
           requestString += `${init}\n\n`;
           requestString += `var request = fetch(\n\t'${url}', init);\n`;
@@ -185,13 +241,13 @@
               snippet += headerString + requestString;
               break;
             case POST:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              snippet += headerString + bodyString + requestString;
               break;
             case PUT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              snippet += headerString + bodyString + requestString;
               break;
             case DELETE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              snippet += headerString + bodyString + requestString;
               break;
             case TRACE:
               snippet += headerString + requestString;
@@ -203,7 +259,7 @@
               snippet += headerString + requestString;
               break;
             case PATCH:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
+              snippet += headerString + bodyString + requestString;
               break;
           }
           return snippet;
@@ -212,131 +268,72 @@
         getPythonSnippet: function (method, url, params, headers, body) {
           var snippet ='import requests\n\n';
           var requestString = '', paramString = '', headerString = '', bodyString = '';
+          var key, value;
+
+          requestString = `response = request.get('${url}'`;
+
+          if (!this.isEmptyObject(params)) {
+            paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
+            requestString += ',\n\t\t\tparams=payload';
+          }
+
+          if (!this.isEmptyObject(headers)) {
+            headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
+            requestString += ', headers=headers';
+          }
+
+          var contentType = headers['Content-Type'];
+          if (contentType &&
+              (contentType.includes('application/json') || contentType.includes('application/x-www-form-urlencode'))) {
+            bodyString = `body = ${JSON.stringify(body, null, '\t')}\n\n`;
+            requestString += ', data=body';
+          } else if (contentType && contentType.includes('multipart/form-data')) {
+            bodyString = 'body = (';
+            for (var bForm in body) {
+              if (body.hasOwnProperty(bForm)) {
+                value = body[bForm];
+                key = bForm;
+                bodyString += `\n\t('${key}', ${typeof value === 'string' ? `'${value}'` : value}),`;
+              }
+            }
+            bodyString = bodyString.substr(0, bodyString.length - 1);
+            bodyString += '\n)\n\n';
+            requestString += ', files=body';
+          } else if (body && body.length > 0) {
+            bodyString = `body = '${body}';\n\n`;
+            requestString += ', data=body';
+          }
+          bodyString = bodyString.split('true').join('True').split('false').join('False');
+
+          requestString += ')\n';
 
           switch (method) {
             case GET:
-              requestString = `response = request.get('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              snippet += paramString + headerString + requestString + ')\n';
+              snippet += paramString + headerString + requestString;
               break;
             case HEAD:
-              requestString = `response = request.head('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              snippet += paramString + headerString + requestString + ')\n';
+              snippet += paramString + headerString + requestString;
               break;
             case POST:
-              requestString = `response = request.post('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              if (body) {
-                bodyString = `body = '${body}'`;
-                requestString += ', data=body';
-              }
-              snippet += paramString + headerString + bodyString + requestString + ')\n';
+              snippet += paramString + headerString + bodyString + requestString;
               break;
             case PUT:
-              requestString = `response = request.put('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              if (body) {
-                bodyString = `body = '${body}'`;
-                requestString += ', data=body';
-              }
-              snippet += paramString + headerString + bodyString + requestString + ')\n';
+              snippet += paramString + headerString + bodyString + requestString;
               break;
             case DELETE:
-              requestString = `response = request.delete('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              if (body) {
-                bodyString = `body = '${body}'`;
-                requestString += ', data=body';
-              }
-              snippet += paramString + headerString + bodyString + requestString + ')\n';
+              snippet += paramString + headerString + bodyString + requestString;
               break;
             case TRACE:
-              requestString = `response = request.trace('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              snippet += paramString + headerString + requestString + ')\n';
+              snippet += paramString + headerString + requestString;
               break;
             case OPTIONS:
-              requestString = `response = request.options('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              snippet += paramString + headerString + requestString + ')\n';
+              snippet += paramString + headerString + requestString;
               break;
             case CONNECT:
-              requestString = `response = request.connect('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              snippet += paramString + headerString + requestString + ')\n';
+              snippet += paramString + headerString + requestString;
               break;
             case PATCH:
-              requestString = `response = request.patch('${url}'`;
-              if (!this.isEmptyObject(params)) {
-                paramString = `payload = ${JSON.stringify(params, null, '\t')}\n\n`;
-                requestString += ',\n\t\t\tparams=payload';
-              }
-              if (!this.isEmptyObject(headers)) {
-                headerString = `headers = ${JSON.stringify(headers, null, '\t')}\n\n`;
-                requestString += ', headers=headers';
-              }
-              if (body) {
-                bodyString = `body = '${body}'`;
-                requestString += ', data=body';
-              }
-              snippet += paramString + headerString + bodyString + requestString + ')\n';
+              snippet += paramString + headerString + bodyString + requestString;
               break;
           }
           return snippet;
@@ -408,9 +405,11 @@
           switch (method) {
             case GET:
               snippet += headerString + requestString;
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case HEAD:
               snippet += headerString + requestString;
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case POST:
               snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
@@ -420,15 +419,19 @@
               break;
             case DELETE:
               snippet += headerString + requestString;
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case TRACE:
               snippet += headerString + requestString;
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case OPTIONS:
               snippet += headerString + requestString;
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case CONNECT:
               snippet += headerString + requestString;
+              snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
               break;
             case PATCH:
               snippet = 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
