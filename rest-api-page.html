@@ -7,9 +7,10 @@
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../paper-item/paper-item.html">
 
-<link rel="import" href="../iron-doc-viewer/iron-doc-property.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../iron-selector/iron-selector.html">
+
+<link rel="import" href="rest-api-property.html">
 
 <link rel="import" href="rest-api-language-selector.html">
 <link rel="import" href="rest-api-code-snippet.html">
@@ -58,7 +59,7 @@ Example:
         font-size: 22px;
         padding-top: 16px;
       }
-      iron-doc-property {
+      rest-api-property {
         background: #eee;
       }
       .request {
@@ -104,7 +105,7 @@ Example:
         padding: 16px 0;
         flex-direction: column;
       }
-      .doc > :not(iron-doc-property) {
+      .doc > :not(rest-api-property, paper-icon-button) {
         padding: 0 16px;
       }
       .example {
@@ -198,20 +199,20 @@ Example:
             <template is="dom-if" if="[[_isSet(_endpoint.params)]]">
               <h4>Params:</h4>
               <template is="dom-repeat" items="[[_endpoint.params]]" as="param">
-                <iron-doc-property descriptor="[[_convertToDescriptor(param)]]"></iron-doc-property>
+                <rest-api-property descriptor="[[param]]"></rest-api-property>
               </template>
             </template>
             <template is="dom-if" if="[[_isSet(_endpoint.headers)]]">
               <h4>Headers:</h4>
               <template is="dom-repeat" items="[[_endpoint.headers]]" as="header">
-                <iron-doc-property descriptor="[[_convertToDescriptor(header)]]"></iron-doc-property>
+                <rest-api-property descriptor="[[header]]"></rest-api-property>
               </template>
             </template>
             <template is="dom-if" if="[[_isSet(_endpoint.body)]]">
               <h4>Body:</h4>
               <template is="dom-if" if="[[_isArray(_endpoint.body)]]">
                 <template is="dom-repeat" items="[[_endpoint.body]]" as="kvPair">
-                  <iron-doc-property descriptor="[[_convertToDescriptor(kvPair)]]"></iron-doc-property>
+                  <rest-api-property descriptor="[[kvPair]]"></rest-api-property>
                 </template>
               </template>
               <template is="dom-if" if="[[!_isArray(_endpoint.body)]]">
@@ -289,10 +290,10 @@ Example:
         var type = param.type;
         var values = param.values;
         return {
-          default: values ? values.join(', ') : undefined,
-          desc: param.innerText,
-          name: key,
-          published: true,
+          values: values ? values.join(', ') : undefined,
+          explanation: param.explanation,
+          key: key,
+          optional: param.optional,
           type: type
         };
       },
