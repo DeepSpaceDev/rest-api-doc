@@ -1,6 +1,17 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="x-json.html">
 
+<!--
+`rest-api-live-response` displays an REST API response.
+
+Example:
+
+      <rest-api-live-response></rest-api-live-response>
+
+@group REST Elements
+@element rest-api-live-response
+@hero hero.svg
+-->
 <dom-module id="rest-api-live-response">
   <template>
     <style>
@@ -28,12 +39,13 @@
       Polymer({
         is: 'rest-api-live-response',
 
-        properties: {},
-
         ready: function () {
           this.setResponse();
         },
-
+        /**
+         * Set the response
+         * @param response The response object
+         */
         setResponse: function (response) {
           if (response instanceof Object) {
             var headers = response.headers;
@@ -44,9 +56,9 @@
               }.bind(this));
             }
           } else if (typeof response === 'string') {
-            this.$.jsonResponse.data = response;
+            this.$.jsonResponse.data = `"${response}"`;
           } else {
-            this.$.jsonResponse.data = "No request sent";
+            this.$.jsonResponse.data = '"No request sent"';
           }
         }
 

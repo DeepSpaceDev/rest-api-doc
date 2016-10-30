@@ -1,5 +1,20 @@
 <link rel="import" href="../polymer/polymer.html">
 
+<!--
+`rest-api-param` declares a param for an endpoint.
+
+Example:
+
+      <rest-api-page baseUrl="https://httpbin.org">
+        <rest-api-doc title="Get request" endpoint="/get" method="GET">
+          <rest-api-param key="key" type="boolean" values="[true, false]">Explanation for the param in the body</rest-api-param>
+        </rest-api-doc>
+      </rest-api-page>
+
+@group REST Elements
+@element rest-api-param
+@hero hero.svg
+-->
 <dom-module id="rest-api-param">
   <template>
     <style>
@@ -21,27 +36,50 @@
         },
 
         properties: {
+          /**
+           * The key of the param
+           */
           key: String,
+          /**
+           * The type of the value
+           */
           type: String,
+          /**
+           * Possible/Example values
+           * Set it for a default response
+           */
           values: Array,
+          /**
+           * If this param is optional
+           */
           optional: Boolean,
+          /**
+           * Explanation for the param
+           */
           explanation: String,
+          /**
+           * The DOM observer
+           */
           _observer: Object
         },
 
         attached: function () {
+          // Observer mutations for the DOM
           this._observer = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
+              // Reset the explanation
               this.explanation = this.innerText.trim();
             }.bind(this));
           }.bind(this));
 
           var config = {characterData: true, subtree: true};
           this._observer.observe(this, config);
+          // Set initial explanation
           this.explanation = this.innerText.trim();
         },
 
         detached: function () {
+          // Remove observer
           this._observer.disconnect();
         }
 

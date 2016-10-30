@@ -3,6 +3,17 @@
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-button/paper-button.html">
 
+<!--
+`rest-api-live-demo` injects live demo with customizable params, headers and body into your page.
+
+Example:
+
+      <rest-api-live-demo base-url="https://example.com" endpoint="[[endpoint]]"></rest-api-live-demo>
+
+@group REST Elements
+@element rest-api-live-demo
+@hero hero.svg
+-->
 <dom-module id="rest-api-live-demo">
   <template>
     <style>
@@ -31,6 +42,7 @@
         margin-left: 8px;
       }
     </style>
+    <!-- Loop over all possible params -->
     <div id="params">
       <template is="dom-if" if="[[_isSet(endpoint.params)]]">
         <div class="title">Params</div>
@@ -41,6 +53,7 @@
         </div>
       </template>
     </div>
+    <!-- Loop over all possible headers -->
     <div id="headers">
       <template is="dom-if" if="[[_isSet(endpoint.headers)]]">
         <div class="title">Headers</div>
@@ -51,6 +64,7 @@
         </div>
       </template>
     </div>
+    <!-- Loop over all possible body key-value pairs -->
     <div id="body">
       <template is="dom-if" if="[[_isSet(endpoint.body)]]">
         <div class="title">Body</div>
@@ -72,24 +86,46 @@
         is: 'rest-api-live-demo',
 
         properties: {
+          /**
+           * Information about the endpoint
+           * @type {{title: string, endpoint: string, params: Array.<HTMLElement>, headers: Array.<HTMLElement>, body: Array.<HTMLElement>}}
+           */
           endpoint: Object,
+          /**
+           * The base URL of the API
+           */
           baseUrl: String
         },
 
         observers: ['_endpointChanged(endpoint.*, baseUrl)'],
-
+        /**
+         * Called when the endpoint was changed
+         * @private
+         */
         _endpointChanged: function () {
           requestAnimationFrame(_ => {
             this.sendRequest();
           });
         },
 
+        /**
+         * Get the first value of the provided array
+         * @param values Get the first element of the array
+         * @returns {*} The first element
+         * @private
+         */
         _getFirstValue: function (values) {
           if (values && values instanceof Array && values.length > 0) {
             return values[0];
           }
         },
 
+        /**
+         * If `params`, `headers` or `body` is set
+         * @param obj Array of `params`, `headers` or `body`
+         * @returns {boolean} Is `params`, `headers` or `body` set
+         * @private
+         */
         _isSet: function (obj) {
           if (obj) {
             if (obj instanceof Array)
@@ -98,6 +134,11 @@
           return false;
         },
 
+        /**
+         * Parse a string value into a Boolean, Number or String
+         * @param val The value to parse
+         * @returns {boolean | number | string} Parsed value
+         */
         parseValue: function (val) {
           if (typeof val === 'string' && val.length > 0) {
             // Try parsing booleans and numbers
@@ -110,6 +151,9 @@
           return val;
         },
 
+        /**
+         * Send the request with the provided values
+         */
         sendRequest: function () {
           this.fire('http-result', {response: null});
           var url = this.baseUrl + this.endpoint.endpoint + '?';
@@ -118,7 +162,7 @@
           var headerInputs = this.$.headers.querySelectorAll('paper-input');
           var bodyInputs = this.$.body.querySelectorAll('paper-input');
           var value, key, body;
-
+          // Add params to url
           for (var p = 0; p < paramInputs.length; p++) {
             value = this.parseValue(paramInputs[p].value);
             key = paramInputs[p].label;
@@ -126,7 +170,7 @@
 
           }
           url = url.substr(0, url.length - 1);
-
+          // Add headers to Headers object
           var headers = new Headers();
           for (var h = 0; h < headerInputs.length; h++) {
             value = headerInputs[h].value;
@@ -135,7 +179,7 @@
               headers.append(key, value);
             }
           }
-
+          // Construct body
           if (headers.has('Content-Type')) {
             var contentType = headers.get('Content-Type');
             if (contentType.includes('application/json')) {
@@ -167,7 +211,7 @@
                 body = null;
             }
           }
-
+          // Add the body if possible
           var init = {
             method: method,
             headers: headers,

@@ -1,5 +1,23 @@
 <link rel="import" href="../polymer/polymer.html">
 
+<!--
+`rest-api-section` Defines a section for endpoints
+
+Example:
+
+    <rest-api-page baseUrl="https://httpbin.org">
+      <rest-api-section heading="A section">
+        <rest-api-doc title="Get request" endpoint="/get" method="GET">
+        </rest-api-doc>
+        <rest-api-doc title="Post request" endpoint="/post" method="POST">
+        </rest-api-doc>
+      </rest-api-section>
+    </rest-api-page>
+
+@group REST Elements
+@element rest-api-section
+@hero hero.svg
+-->
 <dom-module id="rest-api-section">
   <template>
     <style>
@@ -17,12 +35,11 @@
         is: 'rest-api-section',
 
         properties: {
+          /**
+           * The heading for the section
+           */
           heading: String
-        },
-
-        attached: function () {
         }
-
       });
     })();
   </script>

@@ -1,24 +1,21 @@
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
 <link rel="import" href="../polymer/polymer.html">
 
 <!--
-An element providing a solution to no problem in particular.
+`rest-api-doc` defines an endpoint for a `rest-api-page`.
 
 Example:
 
-    <rest-api-doc></rest-api-doc>
+    <rest-api-page base-url="https://httpbin.org">
+      <rest-api-doc title="I'm a title" endpoint="/post" method="POST">
+        <rest-api-param key="param" type="number" values="[1, 2, 3]">Explanation for the param</rest-api-param>
+        <rest-api-header key="Content-Type" values='["application/json"]'>Explanation for the header</rest-api-header>
+        <rest-api-kv-body key="key" values='["application(json"]' optional>Explanation for the key-value body</rest-api-header>
+        <rest-api-explanation>Explanation for the endpoint</rest-api-explanation>
+      </rest-api-doc>
+    </rest-api-page>
 
 @group REST Elements
 @element rest-api-doc
-@demo demo/doc.html
 @hero hero.svg
 -->
 <dom-module id="rest-api-doc">
@@ -91,15 +88,15 @@ Example:
        */
       body: Array,
 
+      /**
+       * The explanation of the endpoint
+       */
       explanation: String,
 
       /**
-       * The `response` of the HTTP Request after it has been performed
+       * The DOM observer
        */
-      response: {
-        type: String,
-        readOnly: true
-      }
+      _observer: Object
     },
 
     ready: function () {
@@ -107,12 +104,16 @@ Example:
       this.set('headers', []);
       this.set('body', null);
       this.set('explanation', '');
-
+      // Observe DOM mutations
       this._observer = Polymer.dom(this).observeNodes(function (info) {
         this._setRequestInfo();
       });
     },
 
+    /**
+     * Updates request information
+     * @private
+     */
     _setRequestInfo: function () {
       var params = this.queryAllEffectiveChildren('rest-api-param');
       var headers = this.queryAllEffectiveChildren('rest-api-header');
