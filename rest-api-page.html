@@ -17,8 +17,10 @@
 <link rel="import" href="rest-api-live-response.html">
 
 <link rel="import" href="rest-api-section.html">
+<link rel="import" href="rest-api-doc.html">
 <link rel="import" href="rest-api-param.html">
 <link rel="import" href="rest-api-header.html">
+<link rel="import" href="rest-api-kv-body.html">
 
 <!--
 An element providing a solution to no problem in particular.
@@ -208,7 +210,7 @@ Example:
             <template is="dom-if" if="[[_isSet(_endpoint.body)]]">
               <h4>Body:</h4>
               <template is="dom-if" if="[[_isArray(_endpoint.body)]]">
-                <template is="dom-repeat" items="[[_endpoint.body]]" as="kvPain">
+                <template is="dom-repeat" items="[[_endpoint.body]]" as="kvPair">
                   <iron-doc-property descriptor="[[_convertToDescriptor(kvPair)]]"></iron-doc-property>
                 </template>
               </template>
