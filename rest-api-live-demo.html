@@ -112,7 +112,7 @@
 
         sendRequest: function () {
           this.fire('http-result', {response: null});
-          var url = this.baseUrl + this.endpoint.url + '?';
+          var url = this.baseUrl + this.endpoint.endpoint + '?';
           var method = this.endpoint.method.toUpperCase();
           var paramInputs = this.$.params.querySelectorAll('paper-input');
           var headerInputs = this.$.headers.querySelectorAll('paper-input');
