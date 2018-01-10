@@ -63,7 +63,7 @@ Example:
           _observer: Object
         },
 
-        attached: function () {
+        ready: function () {
           // Observer mutations for the DOM
           this._observer = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {

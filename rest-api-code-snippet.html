@@ -1,4 +1,5 @@
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../syntax-highlight/syntax-highlight.html">
 <link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/github-gist.css">
 
@@ -15,6 +16,7 @@ Example:
     <style>
       :host {
         display: block;
+        position: relative;
       }
       code#code {
         border-radius: 2px;
@@ -26,34 +28,51 @@ Example:
         background: rgba(0, 0, 0, 0.4);
         border-radius: 2px;
       }
+      textarea#codeToCopy {
+        position: fixed;
+        top: -7px;
+        left: -7px;
+        width: 1px;
+        height: 1px;
+      }
+      paper-button {
+        position: absolute;
+        top: 2em;
+        right: 0;
+        background: var(--accent-color);
+      }
     </style>
     <pre>
       <code id="code" class$="[[language]]"></code>
     </pre>
+    <paper-button raised on-tap="copySnippet">Copy</paper-button>
+    <textarea id="codeToCopy" value="[[snippet]]"></textarea>
   </template>
   <script src="highlight.js"></script>
   <script src="string_includes_polyfill.js"></script>
+  <script src="node_modules/form-urlencoded/form-urlencoded.js"></script>
   <script>
     (function () {
       'use strict';
 
-      var GET = 'GET';
-      var HEAD = 'HEAD';
-      var POST = 'POST';
-      var PUT = 'PUT';
-      var DELETE = 'DELETE';
-      var TRACE = 'TRACE';
-      var OPTIONS = 'OPTIONS';
-      var CONNECT = 'CONNECT';
-      var PATCH = 'PATCH';
+      const GET = 'GET';
+      const HEAD = 'HEAD';
+      const POST = 'POST';
+      const PUT = 'PUT';
+      const DELETE = 'DELETE';
+      const TRACE = 'TRACE';
+      const OPTIONS = 'OPTIONS';
+      const CONNECT = 'CONNECT';
+      const PATCH = 'PATCH';
 
-      var CURL = 'curl';
-      var JS = 'js';
-      var PYTHON = 'python';
-      var GO = 'go';
-      var RUBY = 'ruby';
-      var PHP = 'php';
-      var JAVA = 'java';
+      const CURL = 'curl';
+      const JS = 'js';
+      const PYTHON = 'python';
+      const SWIFT = 'swift';
+      const GO = 'go';
+      const RUBY = 'ruby';
+      const PHP = 'php';
+      const JAVA = 'java';
 
       Polymer({
         is: 'rest-api-code-snippet',
@@ -74,10 +93,17 @@ Example:
           language: {
             type: String,
             observer: '_languageChanged'
-          }
+          },
+          snippet: String
         },
 
         observers: ['_updateSnippet(endpoint.*, language, baseUrl)'],
+
+        copySnippet: function() {
+          var copyText = this.$.codeToCopy;
+          copyText.select();
+          document.execCommand("Copy");
+        },
 
         /**
          * Parse a string value into a Boolean, Number or String
@@ -141,6 +167,9 @@ Example:
             case PYTHON:
               snippet = this.getPythonSnippet(method, url, params, headers, body);
               break;
+            case SWIFT:
+              snippet = this.getSwiftSnippet(method, url, params, headers, body);
+              break;
             case GO:
               snippet = this.getGoSnippet(method, url, params, headers, body);
               break;
@@ -158,7 +187,8 @@ Example:
                   ':( PR are welcome';
           }
           // Display code snippet and highlight it
-          this.$.code.innerText = snippet;
+          this.snippet = snippet;
+          this.$.code.innerText = this.snippet;
           hljs.highlightBlock(this.$.code);
         },
 
@@ -172,38 +202,38 @@ Example:
          * @returns {string} A curl snippet
          */
         getCurlSnippet: function (method, url, params, headers, body) {
-          var snippet = '';
-
-          switch (method) {
-            case GET:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
-              break;
-            case HEAD:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
-              break;
-            case POST:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
-              break;
-            case PUT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
-              break;
-            case DELETE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
-              break;
-            case TRACE:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
-              break;
-            case OPTIONS:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
-              break;
-            case CONNECT:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
-              break;
-            case PATCH:
-              snippet += 'Currently not supported by the doc :( Stay tuned ;) PR\'s are welcome';
-              break;
+          var formData = new FormData();
+          for (var param in params) {
+            formData.append(param, params[param]);
           }
-          return snippet;
+          var snippet = `curl -X ${method} \\\n  '${url}${
+            !this.isEmptyObject(params)?`?${formurlencoded(params)}`:''
+          }' \\\n`;
+          if (!this.isEmptyObject(headers)) {
+            for(var header in headers) {
+              snippet += `  -H '${header}: ${headers[header]}' \\\n`;
+            }
+          }
+          // Construct body
+          if (body) {
+            var contentType = headers['Content-Type'];
+            if (contentType && contentType.includes('application/json')) {
+              // Construct as JSON body
+              snippet += `  -d '${JSON.stringify(body, null, '\t')}' \\\n`;
+            } else if (contentType && contentType.includes('application/x-www-form-urlencoded')) {
+              // Construct as x-www-form-urlencode body
+              snippet += `  -d '${formurlencoded(body)} \\\n`;
+            } else if (contentType && contentType.includes('multipart/form-data')) {
+              // Construct as multipart/form-data body
+              for(var key in body) {
+                snippet += `  -F ${key}=${body[key]} \\\n`
+              }
+            } else if (body && body.length > 0) {
+              // Construct as raw string body
+              bodyString = `  -d '${body}' \\\n`;
+            }
+          }
+          return snippet.substr(0, snippet.length - 2);
         },
 
         /**
@@ -244,7 +274,7 @@ Example:
           if (contentType && contentType.includes('application/json')) {
             // Construct as JSON body
             bodyString = `var body = ${JSON.stringify(body, null, '\t')};\n\n`;
-          } else if (contentType && contentType.includes('application/x-www-form-urlencode')) {
+          } else if (contentType && contentType.includes('application/x-www-form-urlencoded')) {
             // Construct as x-www-form-urlencode body
             bodyString = 'body = new URLSearchParams();\n';
             for (var bUrl in body) {
@@ -397,6 +427,78 @@ Example:
               break;
           }
           return snippet;
+        },
+
+        /**
+         * Get a swift snippet
+         * @param method The request method
+         * @param url The full url: base URL + endpoint
+         * @param params Param object
+         * @param headers Header object
+         * @param body Body object
+         * @returns {string} A swift snippet
+         */
+        getSwiftSnippet: function (method, url, params, headers, body) {
+          var headerString = '', bodyString = '';
+          if (!this.isEmptyObject(headers)) {
+            headerString += 'let headers = [\n';
+            for(var header in headers) {
+              headerString += `\t"${header}": "${headers[header]}",\n`
+            }
+            headerString = headerString.substr(0, headerString.length - 2);
+            headerString += '\n]';
+          }
+          if (body) {
+            var contentType = headers['Content-Type'];
+            if (contentType && contentType.includes('application/json')) {
+              // Construct as JSON body
+              bodyString += 'let parameters = [\n';
+              for(var key in body) {
+                bodyString += `\t"${key}": "${body[key]}",\n`;
+              }
+              bodyString = bodyString.substr(0, bodyString.length - 2);
+              bodyString += '] as [String : Any]\n\n';
+              bodyString += 'let postData = JSONSerialization.data(withJSONObject: parameters, options: [])';
+            } else if (contentType && contentType.includes('application/x-www-form-urlencoded')) {
+              // Construct as x-www-form-urlencode body
+              const bodyKeys = body.keys();
+              console.log(bodyKeys);
+              if (bodyKeys.length > 0) {
+                bodyString += `let postData = NSMutableData(data: "${bodyKeys[0]}=${body[bodyKeys[0]]}".data(using: String.Encoding.utf8)!)\n`;
+                for(let i=1; i<bodyKeys.length; i++) {
+                  bodyString += `postData.append("&${bodyKeys[i]}=${body[bodyKeys[i]]}".data(using: String.Encoding.utf8)!)\n`;
+                }
+              }
+            } else if (contentType && contentType.includes('multipart/form-data')) {
+              // Construct as multipart/form-data body
+              bodyString += '// Currently unsupported Content-Type :/ PR\'s are welcomd :) ';
+            } else if (body && body.length > 0) {
+              // Construct as raw string body
+              bodyString = `  -d '${body}' \\\n`;
+            }
+          }
+          var snippet = `import Foundation\n\n${headerString}\n\n${bodyString}\n\n`
+snippet+=`let request = NSMutableURLRequest(url: NSURL(string: "${url}${
+    !this.isEmptyObject(params)?`?${formurlencoded(params)}`:''
+}")! as URL,
+\tcachePolicy: .useProtocolCachePolicy,
+\ttimeoutInterval: 10.0)
+request.httpMethod = "${method}"
+request.allHTTPHeaderFields = headers
+request.httpBody = postData as Data
+
+let session = URLSession.shared
+let dataTask = session.dataTask(with: request as URLRequest, completionHandler: { (data, response, error) -> Void in
+  if (error != nil) {
+    print(error)
+  } else {
+    let httpResponse = response as? HTTPURLResponse
+    print(httpResponse)
+  }
+})
+
+dataTask.resume()`;
+          return snippet
         },
 
         /**

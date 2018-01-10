@@ -48,30 +48,224 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <prism-highlighter></prism-highlighter>
 
   <template id="exampleCode">
-    <rest-api-page base-url="https://httpbin.org">
-      <rest-api-doc title="Get Request" method="GET" endpoint="/get">
-        <rest-api-param key="someparam" type="Number" values='[1, 12, 30]'>Some numerical param.</rest-api-param>
-        <rest-api-param key="otherparam" type="String" values='["a string", "another string"]' optional>Some string param</rest-api-param>
-        <rest-api-explanation>Send a get request to httpbin.org to see what's in the sent request.</rest-api-explanation>
-      </rest-api-doc>
-      <rest-api-section heading="POST requests">
-        <rest-api-doc title="application/json" method="POST" endpoint="/post">
-          <rest-api-kv-body key="someKey" type="Boolean" values="[true, false]">A boolean key</rest-api-kv-body>
-          <rest-api-kv-body key="anotherKey" type="String" values='["string", "some other string"]'>A string key</rest-api-kv-body>
-          <rest-api-header key="Content-Type" values='["application/json"]'></rest-api-header>
-          <rest-api-explanation>Send a post request to httpbin.org to see what's in the sent request.</rest-api-explanation>
+    <rest-api-page baseUrl="api.thesimpleclub.de" app-name="TSC API 3.0">
+      <rest-api-section heading="Logging Playlist">
+        <rest-api-doc title="/logquiz" endpoint="/logquiz" method="POST">
+          <rest-api-kv-body key="playlistID" type="number" values="[12]">Die zugehörige Playlist in der das Quiz liegt.</rest-api-kv-body>
+          <rest-api-kv-body key="userID" type="number" values="[34]">Die ID des Nutzers.</rest-api-kv-body>
+          <rest-api-kv-body key="quizID" type="number" values="[23]">Die ID des Quizzes.</rest-api-kv-body>
+          <rest-api-kv-body key="questionID" type="number" values="[342]">Die ID der Frage im Quiz.</rest-api-kv-body>
+          <rest-api-kv-body key="selectedAnswer" type="" values="[]">Die vom Nutzer ausgewählte Antwort.</rest-api-kv-body>
+          <rest-api-kv-body key="isCorrect" type="boolean" values="[true, false]">War die Antwort des Nutzers richtig?</rest-api-kv-body>
+          <rest-api-kv-body key="started" type="boolean" values="[true, false]">???</rest-api-kv-body>
+          <rest-api-header key="Content-Type" values='["application/json"]'>Only accepting JSON bodies.</rest-api-header>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Wenn ein Nutzer eine Aufgabe fertig hat, wird das Ergebnis in unserem Log gespeichert.
+
+            Wenn das Quiz nicht innerhalb einer Playlist bearbeitet wurde ist playlistID = null.
+          </rest-api-explanation>
         </rest-api-doc>
-        <rest-api-doc title="application/x-www-form-urlencode" method="POST" endpoint="/post">
-          <rest-api-kv-body key="someKey" type="Boolean" values="[true, false]">A boolean key</rest-api-kv-body>
-          <rest-api-kv-body key="anotherKey" type="String" values='["string", "some other string"]'>A string key</rest-api-kv-body>
-          <rest-api-header key="Content-Type" values='["application/x-www-form-urlencode"]'></rest-api-header>
-          <rest-api-explanation>Send a post request to httpbin.org to see what's in the sent request.</rest-api-explanation>
+        <rest-api-doc title="/logplaylist" endpoint="/logplaylist" method="POST">
+          <rest-api-header key="Content-Type" values='["application/json"]'>Only accepting JSON bodies.</rest-api-header>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Wenn ein Nutzer ein Element in einer Playlist geschaut / bearbeitet hat.
+          </rest-api-explanation>
         </rest-api-doc>
-        <rest-api-doc title="multipart/form-data" method="POST" endpoint="/post">
-          <rest-api-kv-body key="someKey" type="Boolean" values="[true, false]">A boolean key</rest-api-kv-body>
-          <rest-api-kv-body key="anotherKey" type="String" values='["string", "some other string"]'>A string key</rest-api-kv-body>
-          <rest-api-header key="Content-Type" values='["multipart/form-data"]'></rest-api-header>
-          <rest-api-explanation>Send a post request to httpbin.org to see what's in the sent request.</rest-api-explanation>
+        <rest-api-doc title="/resetplaylistprogress" endpoint="/resetplaylistprogress" method="POST">
+          <rest-api-kv-body key="playlistID" type="number" values="[234]">Die Playlist deren Fortschritt zurückgesetzt werden soll.</rest-api-kv-body>
+          <rest-api-kv-body key="userID" type="number" values="[234]">Der Nutzer, der die Playlist zurücksetzen will.</rest-api-kv-body>
+          <rest-api-header key="Content-Type" values='["application/json"]'>Only accepting JSON bodies.</rest-api-header>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Wenn Nutzer kompletten Fortschritt einer Playlist löschen will (dann wird “deleted = true” gesetzt)
+          </rest-api-explanation>
+        </rest-api-doc>
+        <rest-api-doc title="/resetelementprogress" endpoint="/resetelementprogress" method="POST">
+          <rest-api-header key="Content-Type" values='["application/json"]'>Only accepting JSON bodies.</rest-api-header>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Wenn Nutzer Fortschritt eines einzelnen Elements in einer Playlist löschen will (dann wird “delete = true “gesetzt)
+          </rest-api-explanation>
+        </rest-api-doc>
+        <rest-api-doc title="/addmaterial" endpoint="/addmaterial" method="POST">
+          <rest-api-param key="playlistID" type="number" values="[342]">Die zugehörige Playlist in der das Video liegt.</rest-api-param>
+          <rest-api-param key="userID" type="number" values="[452]">Die ID des Nutzers.</rest-api-param>
+          <rest-api-param key="videoID" type="number" values="[234]">Das zugehörige Video zu der das Material gehört.</rest-api-param>
+          <rest-api-param key="moduleType" type="string" values="[]">Die Art des Lernmoduls.</rest-api-param>
+          <rest-api-param key="title" type="string" values='["Das ist ein Titel"]'>Der Titel des Scans.</rest-api-param>
+          <rest-api-param key="answer" type="string" value='["Das ist eine Beschreibung"]' optional>Der Inhalt des Nutzer Scans, falls undefined muss er server-seitig erstellt werden.</rest-api-param>
+          <rest-api-kv-body key="" type="" values="">Scan des Nutzers</rest-api-kv-body>
+          <rest-api-header key="Content-Type" values='["multipart/form-data"]'>Only accepting JSON bodies.</rest-api-header>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Fügt Material von einem Lernblock hinzu.
+          </rest-api-explanation>
+        </rest-api-doc>
+        <rest-api-doc title="/deletematerial" endpoint="/deletematerial" method="POST">
+          <rest-api-header key="Content-Type" values='["application/json"]'>Only accepting JSON bodies.</rest-api-header>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            (wird auch wieder nur auf “delete = true” gesetzt)
+          </rest-api-explanation>
+        </rest-api-doc>
+      </rest-api-section>
+      <rest-api-section heading="Playlists Allgemein">
+        <rest-api-doc title="/getplaylist" endpoint="/getplaylist" method="GET">
+          <rest-api-param key="userID" type="number" values="[234]">Die Nutzer ID, um den Fortschritt zu bekommen.</rest-api-param>
+          <rest-api-param key="playlistID" type="number" values="[534]">Die Playlist, um Informationen über den Nutzer zu bekommen.</rest-api-param>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Zieht sich vom Nexx-Backend den Content der Playlist und vom TSC-Backend den Fortschritt des Nutzers
+          </rest-api-explanation>
+        </rest-api-doc>
+        <rest-api-doc title="/startquiz" endpoint="/startquiz" method="GET">
+          <rest-api-param key="userID" type="number" values="[234]">Die Nutzer ID.</rest-api-param>
+          <rest-api-param key="playlistID" type="number" values="[543]">Die zugehörige Playlist in der das Quiz liegt.</rest-api-param>
+          <rest-api-param key="quizID" type="number" values="[345]">Das gestartete Quiz.</rest-api-param>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Wählt die Aufgaben aus dem Quiz in der Reihenfolge aus, sodass es für den Lerneffekt des Users am meisten Sinn macht (anhand der Aufgaben die er in dem Quiz schon falsch hatte, etc.)
+          </rest-api-explanation>
+        </rest-api-doc>
+      </rest-api-section>
+      <rest-api-section heading="Tests in Playlisten">
+        <rest-api-doc title="/starttest" endpoint="/starttest" method="GET">
+          <rest-api-param key="userID" type="number" values="[235]">Die ID des Nutzers.</rest-api-param>
+          <rest-api-param key="playlistID" type="number" values="[234]">Die Playlist, in der der Test gestartet wurde.</rest-api-param>
+          <rest-api-param key="number" type="number" values="[2,5,7]">Die ausgewählte Anzahl an zu machenden Fragen.</rest-api-param>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Wenn User auf “Testen” in einem Kurs klickt, dann gibt er eine Anzahl an Aufgaben in Folge zu lösen an und wir schicken ihm die Aufgaben zurück, sodass er das Quiz machen muss.
+
+            Kombiniert Content aus dem Nexx-Backend mit den bereits beantworteten Aufgaben aus dem TSC-Backend →  Hier muss die Logik extrem intelligent sein :)
+            Hier wird auch das Zeug aus dem “Lernblock” eingespeist :)
+
+            Es wird dann ein neuer Eintrag in “playlist_tests” angelegt und die Aufgaben vom Test werden in “test_elements” gespeichert
+          </rest-api-explanation>
+        </rest-api-doc>
+        <rest-api-doc title="/finishelement" endpoint="/finishelement" method="POST">
+          <rest-api-kv-body key="userID" type="number" values="[342]">Der interagierend Nutzer.</rest-api-kv-body>
+          <rest-api-kv-body key="playlistID" type="number" values="[634]">Die Playlist zu der, der Test gehört.</rest-api-kv-body>
+          <rest-api-kv-body key="playlist_testID" type="number" values="[634]">Die ID des Tests.</rest-api-kv-body>
+          <rest-api-kv-body key="elementID" type="number" values="[3463]">Die abgeschlossene Element.</rest-api-kv-body>
+          <rest-api-kv-body key="is_correct" type="boolean" values="[true, false]">War die Antwort richtig?</rest-api-kv-body>
+          <rest-api-header key="Content-Type" values='["application/json"]'>Only accepting JSON bodies.</rest-api-header>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Wenn ein Element im Test abgeschlossen wurde, wird die Flag entsprechend gesetzt
+          </rest-api-explanation>
+        </rest-api-doc>
+        <rest-api-doc title="/finishtest" endpoint="/finishtest" method="POST">
+          <rest-api-kv-body key="userID" type="number" values="[23]">Der interagierend Nutzer.</rest-api-kv-body>
+          <rest-api-kv-body key="playlistID" type="number" values="[352]">Die Playlist zu der, der Test gehört.</rest-api-kv-body>
+          <rest-api-kv-body key="playlist_testID" type="number" values="[353]">Die ID des Tests.</rest-api-kv-body>
+          <rest-api-header key="Content-Type" values='["application/json"]'>Only accepting JSON bodies.</rest-api-header>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Wenn alle Elemente in einem Test durch sind, dann wird der Test auf finished gesetzt
+          </rest-api-explanation>
+        </rest-api-doc>
+        <rest-api-doc title="/alltests" endpoint="/alltests" method="GET">
+          <rest-api-param key="userID" type="number" values="[73]">Der interagierende Nutzer.</rest-api-param>
+          <rest-api-param key="playlistID" type="number" values="[634]">Die Playlist zu der alle Tests abgefragt werden.</rest-api-param>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Schmeißt alle Tests zurück für die Übersicht wie viele Tests man schon gemacht hat und mit welchen Ergebnissen
+          </rest-api-explanation>
+        </rest-api-doc>
+        <rest-api-doc title="/deletetest" endpoint="/deletetest" method="POST">
+          <rest-api-kv-body key="userID" type="number" values="[466]">Der interagierende Nutzer.</rest-api-kv-body>
+          <rest-api-kv-body key="playlistID" type="number" values="[483]">Die Playlist in der der Test liegt.</rest-api-kv-body>
+          <rest-api-kv-body key="playlist_testID" type="number" values="[344]">Die ID des Tests.</rest-api-kv-body>
+          <rest-api-header key="Content-Type" values='["application/json"]'>Only accepting JSON bodies.</rest-api-header>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Löscht einen Test
+            (setzt deleted = true)
+            (! Sowohl in playlist_tests, als auch in allen “test_elements” die dazugehören)
+          </rest-api-explanation>
+        </rest-api-doc>
+        <rest-api-doc title="/testresult" endpoint="/testresult" method="GET">
+          <rest-api-param key="userID" type="number" values="[342]">Der interagierende Nutzer.</rest-api-param>
+          <rest-api-param key="playlistID" type="number" values="[873]">Die zugehörige Playlist.</rest-api-param>
+          <rest-api-param key="playlist_testID" type="" values="[590]">Die ID des abgefragten Tests.</rest-api-param>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Geht nur, wenn finished = true
+
+            Gibt eine detaillierte Auflistung des Testergebnisses zurück: Hier sollte dann eine schöne Auflistung da sein welche Themenbereiche
+
+            → wird komplexere Abfrage von Omnia Backend & TSC-Backend
+          </rest-api-explanation>
+        </rest-api-doc>
+        <rest-api-doc title="/continuetest" endpoint="/continuetest" method="GET">
+          <rest-api-param key="userID" type="number" values="[345]">Der interagierende Nutzer.</rest-api-param>
+          <rest-api-param key="playlistID" type="number" values="[643]">Die zugehörige Playlist.</rest-api-param>
+          <rest-api-param key="playlist_testID" type="number" values="[453]">Der wiederaufgenommene Test.</rest-api-param>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Falls finished = true, wird ein leeres Array zurückgegeben.
+
+            Gibt die Testelemente zurück, die noch nicht finished = true sind.
+          </rest-api-explanation>
+        </rest-api-doc>
+      </rest-api-section>
+      <rest-api-section heading="Logging des Video-Fortschritts">
+        <rest-api-doc title="/videosuggests" endpoint="/videosuggests" method="POST">
+          <rest-api-kv-body key="videoID" type="number" values="[53]">Das Video zu dem ein Vorschlag gemacht werden soll.</rest-api-kv-body>
+          <rest-api-kv-body key="userID" type="number" values="[643]">Der Nutzer für den dieser Vorschlag gedacht ist.</rest-api-kv-body>
+          <rest-api-header key="Content-Type" values='["application/json"]'>Only accepting JSON bodies.</rest-api-header>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Gibt Vorschläge an Content für ein Video raus (Spickzettel, andere Videos, Quizze).
+            User ID wird mitgegeben um perspektivisch Vorschläge für Nutzer anzupassen ohne Clients zu ändern.
+          </rest-api-explanation>
+        </rest-api-doc>
+      </rest-api-section>
+      <rest-api-section heading="Logging des Start-Fortschritts">
+        <rest-api-doc title="/startsuggest" endpoint="/startsuggest" method="POST">
+          <rest-api-kv-body key="userID" type="number" values="[634]">Der Nutzer für den der Vorschlag ist.</rest-api-kv-body>
+          <rest-api-header key="Content-Type" values='["application/json"]'>Only accepting JSON bodies.</rest-api-header>
+          <rest-api-header key="X-Request-CID" values='["124235235123"]'>The Session ID with the currently authenticated users. Neccessary when delivering user related content from Omnia.</rest-api-header>
+          <rest-api-header key="X-Request-User" values='["124235235123"]'>The User ID with the currently authenticated users. Neccessary when delivering user related content from Google Cloud Platform.</rest-api-header>
+          <rest-api-header key="X-Client-ID" values='["124235235123"]'>The Client ID of the users platform. Neccessary to authorize the app.</rest-api-header>
+          <rest-api-explanation>
+            Wählt den gefeatureten Content auf der Startseite aus. Zum Beispiel die nächste wichtige Klausur.
+          </rest-api-explanation>
         </rest-api-doc>
       </rest-api-section>
     </rest-api-page>

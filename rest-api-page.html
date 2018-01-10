@@ -97,6 +97,7 @@ As you maybe realised using a `rest-api-section` works seamlessly with a `rest-a
         font-size: 20px;
         align-items: flex-end;
         min-height: 32px;
+        margin-top: 16px;
       }
       /* Background color for `params`, `headers` and `body` doc */
       rest-api-property {
@@ -124,9 +125,15 @@ As you maybe realised using a `rest-api-section` works seamlessly with a `rest-a
         font-style: italic;
         color: #4a4a4a;
       }
+      /* Styling for the endpoint explanation */
+      .explanation {
+        margin-top: 16px;
+      }
       /* Styling for the endpoint selection */
+      paper-header-panel[drawer] {
+          background: #f0f0f0;
+      }
       .drawer-content {
-        background: #f0f0f0;
         height: 100%;
       }
       /* Remove default margin/padding of `paper-toolbar` */
@@ -296,13 +303,6 @@ As you maybe realised using a `rest-api-section` works seamlessly with a `rest-a
                 <rest-api-property descriptor="[[param]]"></rest-api-property>
               </template>
             </template>
-            <!-- Documentation of the headers -->
-            <template is="dom-if" if="[[_isSet(_endpoint.headers)]]">
-              <h4>Headers:</h4>
-              <template is="dom-repeat" items="[[_endpoint.headers]]" as="header">
-                <rest-api-property descriptor="[[header]]"></rest-api-property>
-              </template>
-            </template>
             <!-- Documentation of the body -->
             <template is="dom-if" if="[[_isSet(_endpoint.body)]]">
               <h4>Body:</h4>
@@ -317,6 +317,13 @@ As you maybe realised using a `rest-api-section` works seamlessly with a `rest-a
                 <!-- Currently not supported. PR's welcome -->
               </template>
             </template>
+            <!-- Documentation of the headers -->
+            <template is="dom-if" if="[[_isSet(_endpoint.headers)]]">
+              <h4>Headers:</h4>
+              <template is="dom-repeat" items="[[_endpoint.headers]]" as="header">
+                <rest-api-property descriptor="[[header]]"></rest-api-property>
+              </template>
+            </template>
           </div>
           <!-- [doc end] -->
           <!-- [examples start] -->
@@ -327,7 +334,7 @@ As you maybe realised using a `rest-api-section` works seamlessly with a `rest-a
               </rest-api-code-snippet>
             </template>
             <!-- Display live demo with response if wanted -->
-            <template is="dom-if" if="[[!noLiveDemo]]">
+            <template id="liveResultWrapper" is="dom-if" if="[[!noLiveDemo]]">
               <rest-api-live-demo base-url="[[baseUrl]]" endpoint="[[_endpoint]]"
                                   on-http-result="_displayResult"></rest-api-live-demo>
               <rest-api-live-response id="restApiLiveResult"></rest-api-live-response>
@@ -382,7 +389,7 @@ As you maybe realised using a `rest-api-section` works seamlessly with a `rest-a
          */
         language: {
           type: String,
-          value: 'python'
+          value: 'curl'
         }
       },
 
@@ -467,7 +474,7 @@ As you maybe realised using a `rest-api-section` works seamlessly with a `rest-a
        */
       _displayResult: function (e) {
         var response = e.detail.response;
-        this.$.restApiLiveResult.setResponse(response);
+        this.$$('#restApiLiveResult').setResponse(response);
       }
     });
   </script>

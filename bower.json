@@ -25,7 +25,8 @@
     "paper-item": "^1.2.1",
     "marked-element": "^1.2.0",
     "paper-styles": "^1.1.5",
-    "prism-element": "^1.1.1"
+    "prism-element": "^1.1.1",
+    "syntax-highlight": "^1.0.0"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
